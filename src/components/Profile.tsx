@@ -180,19 +180,19 @@ export function Profile() {
     : [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-gray-900 dark:text-gray-100">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">My Profile</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Manage your skills, availability, and profile settings.
           </p>
         </div>
         <button
           onClick={() => isEditing ? handleSave() : setIsEditing(true)}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 dark:bg-blue-700 dark:hover:bg-blue-600 dark:disabled:bg-blue-500 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
         >
           {loading && (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -204,7 +204,7 @@ export function Profile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Card */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 sticky top-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 sticky top-8">
             {/* Profile Photo */}
             <div className="text-center mb-6">
               <div className="relative inline-block">
@@ -220,34 +220,34 @@ export function Profile() {
                   </div>
                 )}
                 {isEditing && (
-                  <button className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors">
+                  <button className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white p-2 rounded-full transition-colors">
                     <Camera className="h-4 w-4" />
                   </button>
                 )}
               </div>
               
-              <h2 className="text-xl font-bold text-gray-900 mt-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-4">
                 {isEditing ? (
                   <input
                     type="text"
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="text-center border-b border-gray-300 focus:border-blue-500 outline-none bg-transparent"
+                    className="text-center border-b border-gray-300 dark:border-gray-600 focus:border-blue-500 outline-none bg-transparent text-gray-900 dark:text-gray-100"
                   />
                 ) : (
                   currentUser.name
                 )}
               </h2>
               
-              <div className="flex items-center justify-center text-gray-500 mt-2">
-                <MapPin className="h-4 w-4 mr-1" />
+              <div className="flex items-center justify-center text-gray-500 dark:text-gray-400 mt-2">
+                <MapPin className="h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
                 {isEditing ? (
                   <input
                     type="text"
                     value={editForm.location}
                     onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                     placeholder="Add your location"
-                    className="text-center border-b border-gray-300 focus:border-blue-500 outline-none bg-transparent text-sm"
+                    className="text-center border-b border-gray-300 dark:border-gray-600 focus:border-blue-500 outline-none bg-transparent text-sm text-gray-500 dark:text-gray-400"
                   />
                 ) : (
                   <span>{currentUser.location || 'No location set'}</span>
@@ -258,17 +258,17 @@ export function Profile() {
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold text-gray-900">{currentUser.rating.toFixed(1)}</p>
-                <p className="text-sm text-gray-500">Rating</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{currentUser.rating.toFixed(1)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Rating</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{currentUser.totalSwaps}</p>
-                <p className="text-sm text-gray-500">Swaps</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{currentUser.totalSwaps}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Swaps</p>
               </div>
             </div>
 
             {/* Privacy Setting */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   {editForm.isPublic ? (
@@ -276,7 +276,7 @@ export function Profile() {
                   ) : (
                     <EyeOff className="h-5 w-5 text-gray-400" />
                   )}
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Profile Visibility
                   </span>
                 </div>
@@ -295,7 +295,7 @@ export function Profile() {
                   </button>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {editForm.isPublic ? 'Public profile' : 'Private profile'}
               </p>
             </div>
@@ -306,16 +306,16 @@ export function Profile() {
         <div className="lg:col-span-2 space-y-8">
           {/* Welcome message for new users */}
           {isNewUser && !isEditing && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
                 Welcome to SkillSwap! 👋
               </h3>
-              <p className="text-blue-800 mb-4">
+              <p className="text-blue-800 dark:text-blue-200 mb-4">
                 Complete your profile to start connecting with other learners and sharing your skills.
               </p>
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 Complete Your Profile
               </button>
@@ -323,16 +323,16 @@ export function Profile() {
           )}
 
           {/* Skills Offered */}
-          <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills I Offer</h3>
+          <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Skills I Offer</h3>
             
             {isEditing && (
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="">Select category</option>
                     {skillCategories.map(cat => (
@@ -343,7 +343,7 @@ export function Profile() {
                   <select
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     disabled={!selectedCategory}
                   >
                     <option value="">Select skill</option>
@@ -358,13 +358,13 @@ export function Profile() {
                       addSkill();
                     }}
                     disabled={!newSkill}
-                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Add</span>
                   </button>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Select a category and skill to add to your offerings
                 </p>
               </div>
@@ -389,7 +389,7 @@ export function Profile() {
                 )
               )}
               {(isEditing ? editForm.skillsOffered : userSkills.offered).length === 0 && (
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
                   {isNewUser && !isEditing ? 'Add your skills to get started' : 'No skills added yet'}
                 </p>
               )}
@@ -397,16 +397,16 @@ export function Profile() {
           </div>
 
           {/* Skills Wanted */}
-          <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills I Want to Learn</h3>
+          <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Skills I Want to Learn</h3>
             
             {isEditing && (
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="">Select category</option>
                     {skillCategories.map(cat => (
@@ -417,7 +417,7 @@ export function Profile() {
                   <select
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     disabled={!selectedCategory}
                   >
                     <option value="">Select skill</option>
@@ -432,13 +432,13 @@ export function Profile() {
                       addSkill();
                     }}
                     disabled={!newSkill}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Add</span>
                   </button>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Select a category and skill you want to learn
                 </p>
               </div>
@@ -463,7 +463,7 @@ export function Profile() {
                 )
               )}
               {(isEditing ? editForm.skillsWanted : userSkills.wanted).length === 0 && (
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
                   {isNewUser && !isEditing ? 'Add skills you want to learn' : 'No skills added yet'}
                 </p>
               )}
@@ -471,10 +471,10 @@ export function Profile() {
           </div>
 
           {/* Availability */}
-          <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
+          <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
             <div className="flex items-center space-x-2 mb-4">
-              <Clock className="h-5 w-5 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900">Availability</h3>
+              <Clock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Availability</h3>
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -487,8 +487,8 @@ export function Profile() {
                     disabled={!isEditing}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isSelected
-                        ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                        : 'bg-gray-100 text-gray-600 border border-gray-200'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-600'
                     } ${isEditing ? 'hover:bg-blue-50 cursor-pointer' : 'cursor-default'}`}
                   >
                     {option}
@@ -498,7 +498,7 @@ export function Profile() {
             </div>
             
             {(isEditing ? editForm.availability : currentUser.availability).length === 0 && (
-              <p className="text-gray-500 text-sm mt-2">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
                 {isNewUser && !isEditing ? 'Set your availability to connect with others' : 'No availability set'}
               </p>
             )}
