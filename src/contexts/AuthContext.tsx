@@ -13,6 +13,52 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Function to ensure user profile exists in profiles table
+const ensureUserProfileExists = async (user: SupabaseUser) => {
+  try {
+    // Check if profile already exists
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 is "not found" error, which is expected if profile doesn't exist
+      console.error('Error checking for existing profile:', checkError);
+      return;
+    }
+
+    // If profile doesn't exist, create it
+    if (!existingProfile) {
+      const name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+      const location = user.user_metadata?.location || null;
+
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          name: name,
+          location: location,
+          profile_photo: null,
+          availability: [],
+          is_public: true,
+          is_admin: false,
+          is_banned: false,
+          rating: 0.0,
+          total_swaps: 0
+        });
+
+      if (insertError) {
+        console.error('Error creating profile:', insertError);
+      } else {
+        console.log('Profile created successfully for user:', user.id);
+      }
+    }
+  } catch (error) {
+    console.error('Error in ensureUserProfileExists:', error);
+  }
+};
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -24,6 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data } = await supabase.auth.getSession();
         setSession(data.session);
         setUser(data.session?.user ?? null);
+        
+        // Ensure profile exists for authenticated user
+        if (data.session?.user) {
+          await ensureUserProfileExists(data.session.user);
+        }
       } catch (error) {
         console.error('Error getting session:', error);
         // In development, if Supabase is not configured, just set loading to false
@@ -38,9 +89,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getSession();
     
     try {
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Ensure profile exists for authenticated user
+        if (session?.user) {
+          await ensureUserProfileExists(session.user);
+        }
       });
       return () => {
         listener.subscription.unsubscribe();
@@ -80,32 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: userFriendlyError };
       }
 
-      // Create profile record in profiles table
+      // Profile creation is now handled by ensureUserProfileExists
+      // which will be called automatically when the auth state changes
       if (data.user) {
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: data.user.id,
-              name: name,
-              location: location || null,
-              profile_photo: null,
-              availability: [],
-              is_public: true,
-              is_admin: false,
-              is_banned: false,
-              rating: 0.0,
-              total_swaps: 0
-            });
-
-          if (profileError) {
-            console.error('Error creating profile:', profileError);
-            // Don't fail the signup if profile creation fails
-            // The user can still login and complete their profile later
-          }
-        } catch (profileError) {
-          console.error('Error creating profile:', profileError);
-        }
+        await ensureUserProfileExists(data.user);
       }
 
       setLoading(false);
