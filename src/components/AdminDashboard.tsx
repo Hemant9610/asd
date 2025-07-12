@@ -1,6 +1,3 @@
-Here's the fixed script with added closing brackets and missing characters:
-
-```javascript
 import React, { useState, useEffect } from 'react';
 import { 
   Shield, Users, MessageSquare, Ban, UserCheck, Download, AlertTriangle, 
@@ -77,65 +74,6 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      // Check if Supabase is properly configured
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      const isValidSupabaseUrl = supabaseUrl && 
-        supabaseUrl !== 'https://your-project-id.supabase.co' && 
-        supabaseUrl !== 'https://mock.supabase.co' &&
-        supabaseUrl.includes('.supabase.co');
-
-      const isValidSupabaseKey = supabaseAnonKey && 
-        supabaseAnonKey !== 'your-anon-key-here' && 
-        supabaseAnonKey !== 'mock-key' &&
-        supabaseAnonKey.length > 20;
-
-      if (!isValidSupabaseUrl || !isValidSupabaseKey) {
-        console.warn('🔧 Supabase not properly configured, using mock data');
-        // Use mock data for admin dashboard
-        setUsers([
-          {
-            id: 'mock-1',
-            name: 'Demo User 1',
-            location: 'Demo City',
-            profile_photo: null,
-            availability: ['Weekends'],
-            is_public: true,
-            is_admin: false,
-            is_banned: false,
-            rating: 4.5,
-            total_swaps: 5,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            skillsOffered: ['JavaScript', 'React'],
-            skillsWanted: ['Python', 'Design'],
-            joinedDate: new Date().toISOString(),
-            isPublic: true,
-            totalSwaps: 5
-          },
-          {
-            id: 'mock-2',
-            name: 'Demo User 2',
-            location: 'Another City',
-            profile_photo: null,
-            availability: ['Evenings'],
-            is_public: true,
-            is_admin: false,
-            is_banned: false,
-            rating: 4.2,
-            total_swaps: 3,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            skillsOffered: ['Python', 'Data Analysis'],
-            skillsWanted: ['JavaScript', 'UI Design'],
-            joinedDate: new Date().toISOString(),
-            isPublic: true,
-            totalSwaps: 3
-          }
-        ]);
-      }
-
       // Load users
       const allUsers = await getAllUsersWithSkills();
       setUsers(allUsers);
@@ -612,4 +550,513 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               </button>
                               <button
                                 onClick={() => handleRejectContent(content.id)}
-                                className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-
+                                className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center space-x-1"
+                              >
+                                <XCircle className="h-4 w-4" />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">All Clear!</h4>
+                      <p className="text-gray-600 dark:text-gray-400">No content pending moderation at this time.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'users' && (
+              <div className="space-y-6">
+                {/* Search and Filter */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="text"
+                          placeholder="Search users by name, email, or skills..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        />
+                      </div>
+                    </div>
+                    <div className="sm:w-48">
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="all">All Users</option>
+                        <option value="active">Active Users</option>
+                        <option value="banned">Banned Users</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Users List */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">User Management</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Manage user accounts and permissions</p>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Skills</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stats</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {filteredUsers.map((user) => (
+                          <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center">
+                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white font-semibold">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">{user.email || 'No email'}</div>
+                                  <div className="text-xs text-gray-400 dark:text-gray-500">{user.location || 'No location'}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="space-y-2">
+                                <div>
+                                  <p className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">Offers:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {user.skillsOffered.slice(0, 3).map((skill) => (
+                                      <SkillBadge key={skill} skill={skill} size="sm" />
+                                    ))}
+                                    {user.skillsOffered.length > 3 && (
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">+{user.skillsOffered.length - 3} more</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">Wants:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {user.skillsWanted.slice(0, 3).map((skill) => (
+                                      <SkillBadge key={skill} skill={skill} size="sm" />
+                                    ))}
+                                    {user.skillsWanted.length > 3 && (
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">+{user.skillsWanted.length - 3} more</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-900 dark:text-gray-100">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="text-yellow-500">★</span>
+                                  <span>{user.rating.toFixed(1)}</span>
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {user.totalSwaps || user.total_swaps || 0} swaps
+                                </div>
+                                <div className="text-xs text-gray-400 dark:text-gray-500">
+                                  Joined {new Date(user.joinedDate || user.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                user.isBanned || user.is_banned
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                                  : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                              }`}>
+                                {user.isBanned || user.is_banned ? 'Banned' : 'Active'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex space-x-2">
+                                {user.isBanned || user.is_banned ? (
+                                  <button
+                                    onClick={() => handleUnbanUser(user.id, user.name)}
+                                    className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center space-x-1"
+                                  >
+                                    <UserCheck className="h-4 w-4" />
+                                    <span>Unban</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleBanUser(user.id, user.name)}
+                                    className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center space-x-1"
+                                  >
+                                    <Ban className="h-4 w-4" />
+                                    <span>Ban</span>
+                                  </button>
+                                )}
+                                <button className="bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center space-x-1">
+                                  <Eye className="h-4 w-4" />
+                                  <span>View</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'swaps' && (
+              <div className="space-y-6">
+                {/* Search and Filter */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="text"
+                          placeholder="Search swaps by users or skills..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        />
+                      </div>
+                    </div>
+                    <div className="sm:w-48">
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="all">All Swaps</option>
+                        <option value="pending">Pending</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Swaps List */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Swap Monitoring</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Monitor all skill swap requests and their status</p>
+                  </div>
+                  
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {filteredSwaps.length > 0 ? (
+                      filteredSwaps.map((swap) => (
+                        <div key={swap.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-4 mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                                    {swap.from_profile.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="font-medium text-gray-900 dark:text-gray-100">{swap.from_profile.name}</span>
+                                </div>
+                                <span className="text-gray-400">→</span>
+                                <div className="flex items-center space-x-2">
+                                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center text-white text-sm font-semibold">
+                                    {swap.to_profile.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="font-medium text-gray-900 dark:text-gray-100">{swap.to_profile.name}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center space-x-4 mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm text-gray-600 dark:text-gray-400">Offers:</span>
+                                  <SkillBadge skill={swap.skill_offered.name} />
+                                </div>
+                                <span className="text-gray-400">for</span>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm text-gray-600 dark:text-gray-400">Wants:</span>
+                                  <SkillBadge skill={swap.skill_wanted.name} />
+                                </div>
+                              </div>
+                              
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">"{swap.message}"</p>
+                              
+                              <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                <span>Created: {new Date(swap.created_at).toLocaleDateString()}</span>
+                                <span>Updated: {new Date(swap.updated_at).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="ml-6 flex flex-col items-end space-y-2">
+                              <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                                swap.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
+                                swap.status === 'accepted' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
+                                swap.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
+                                swap.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' :
+                                'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300'
+                              }`}>
+                                {swap.status.charAt(0).toUpperCase() + swap.status.slice(1)}
+                              </span>
+                              
+                              <button className="bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center space-x-1">
+                                <Eye className="h-4 w-4" />
+                                <span>Details</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12">
+                        <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Swap Requests</h4>
+                        <p className="text-gray-600 dark:text-gray-400">No swap requests match your current filters.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'messages' && (
+              <div className="space-y-6">
+                {/* Send New Message */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                      <Send className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Send Platform Message</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Send announcements and updates to all users</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message Title</label>
+                      <input
+                        type="text"
+                        value={newMessage.title}
+                        onChange={(e) => setNewMessage(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="Enter message title..."
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message Type</label>
+                      <select
+                        value={newMessage.type}
+                        onChange={(e) => setNewMessage(prev => ({ ...prev, type: e.target.value as AdminMessage['type'] }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="info">Info</option>
+                        <option value="warning">Warning</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="feature">New Feature</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message Content</label>
+                      <textarea
+                        value={newMessage.content}
+                        onChange={(e) => setNewMessage(prev => ({ ...prev, content: e.target.value }))}
+                        placeholder="Enter your message content..."
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                    
+                    <button
+                      onClick={handleSendMessage}
+                      className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      <span>Send Message</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Message History */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Message History</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Previously sent platform messages</p>
+                  </div>
+                  
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {adminMessages.length > 0 ? (
+                      adminMessages.map((message) => (
+                        <div key={message.id} className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">{message.title}</h4>
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  message.type === 'info' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
+                                  message.type === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' :
+                                  message.type === 'maintenance' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' :
+                                  'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                                }`}>
+                                  {message.type}
+                                </span>
+                                {message.isActive && (
+                                  <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded-full text-xs font-medium">
+                                    Active
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-gray-600 dark:text-gray-400 mb-2">{message.content}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Sent on {new Date(message.createdAt).toLocaleDateString()} at {new Date(message.createdAt).toLocaleTimeString()}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteMessage(message.id)}
+                              className="ml-4 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center space-x-1"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12">
+                        <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Messages Sent</h4>
+                        <p className="text-gray-600 dark:text-gray-400">No platform messages have been sent yet.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'reports' && (
+              <div className="space-y-6">
+                {/* Download Reports */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
+                        <Users className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">User Report</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Download user data and statistics</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => downloadReport('users')}
+                      className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download Users</span>
+                    </button>
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                        <MessageSquare className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Swaps Report</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Download swap request data</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => downloadReport('swaps')}
+                      className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download Swaps</span>
+                    </button>
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-lg">
+                        <BarChart3 className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Activity Report</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Download platform analytics</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => downloadReport('activity')}
+                      className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download Analytics</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Platform Statistics */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Platform Statistics</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">{stats.totalUsers}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Users</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">{stats.completedSwaps}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Completed Swaps</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">{stats.averageRating.toFixed(1)}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Average Rating</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">{getTopSkills().length}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Active Skills</div>
+                    </div>
+                  </div>
+
+                  {/* Top Skills */}
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Most Popular Skills</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {getTopSkills().slice(0, 10).map((skillData, index) => (
+                        <div key={skillData.skill} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">#{index + 1}</span>
+                            <SkillBadge skill={skillData.skill} />
+                          </div>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{skillData.count} users</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export { AdminDashboard }
