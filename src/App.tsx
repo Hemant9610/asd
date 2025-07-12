@@ -145,6 +145,22 @@ function AppRoutes({ showAdminLogin, setShowAdminLogin }: {
 function App() {
   const { user, loading } = useAuth();
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  
+  // Check admin status on mount and when localStorage changes
+  useEffect(() => {
+    const checkAdminStatus = () => {
+      const adminStatus = localStorage.getItem('admin_logged_in') === 'true';
+      console.log('Checking admin status:', adminStatus);
+      setIsAdminLoggedIn(adminStatus);
+    };
+    
+    checkAdminStatus();
+    
+    // Listen for localStorage changes
+    window.addEventListener('storage', checkAdminStatus);
+    return () => window.removeEventListener('storage', checkAdminStatus);
+  }, []);
   
   // Add error boundary for better error handling
   if (loading) {
@@ -160,12 +176,41 @@ function App() {
   
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   
+  // Check admin status FIRST, before checking regular user auth
+  if (isAdminLoggedIn) {
+    console.log('Rendering AdminDashboard for admin user');
+    return (
+      <AdminDashboard 
+        onLogout={() => {
+          console.log('Admin logout called');
+          localStorage.removeItem('admin_logged_in');
+          setIsAdminLoggedIn(false);
+        }} 
+      />
+    );
+  }
+  
   // Show admin login if requested
   if (showAdminLogin) {
-    return <AdminLogin onLogin={() => setShowAdminLogin(false)} />;
+    return (
+      <AdminLogin 
+        onLogin={() => {
+          console.log('Admin login successful, checking localStorage...');
+          setShowAdminLogin(false);
+          // Check admin status after a small delay to ensure localStorage is set
+          setTimeout(() => {
+            const adminStatus = localStorage.getItem('admin_logged_in') === 'true';
+            console.log('Admin status after login:', adminStatus);
+            setIsAdminLoggedIn(adminStatus);
+          }, 100);
+        }} 
+      />
+    );
   }
   
   if (!user) return <AuthForm onAdminClick={() => setShowAdminLogin(true)} />;
+  
+  // Regular user interface
   return <AppRoutes showAdminLogin={showAdminLogin} setShowAdminLogin={setShowAdminLogin} />;
 }
 
