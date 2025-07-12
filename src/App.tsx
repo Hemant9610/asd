@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDarkMode } from './hooks/useDarkMode';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
