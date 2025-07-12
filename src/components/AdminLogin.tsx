@@ -23,17 +23,16 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
     setTimeout(() => {
       if (credentials.username === 'admin' && credentials.password === 'admin123') {
         // Store admin session
-        console.log('Setting admin_logged_in to true in localStorage');
         localStorage.setItem('admin_logged_in', 'true');
-        console.log('localStorage now contains:', localStorage.getItem('admin_logged_in'));
+        console.log('Admin credentials correct, calling onLogin');
+        console.log('localStorage set to:', localStorage.getItem('admin_logged_in'));
         setIsLoading(false);
-        console.log('Calling onLogin callback');
         onLogin();
       } else {
         setError('Invalid credentials. Use admin/admin123 to login.');
         setIsLoading(false);
       }
-    }, 300); // Reduced delay
+    }, 500); // Add small delay to show loading state
   };
 
   // Add useEffect to clear any existing admin session on mount
