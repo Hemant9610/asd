@@ -197,7 +197,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     try {
-      await supabase.auth.signOut();
+      // Only attempt to sign out if there's an active session
+      if (session) {
+        await supabase.auth.signOut();
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
