@@ -15,13 +15,15 @@ import { UserWithSkills } from './lib/users';
 import { useToast } from './hooks/useToast';
 import { ToastContainer } from './components/NotificationToast';
 
-function AppRoutes() {
+function AppRoutes({ showAdminLogin, setShowAdminLogin }: { 
+  showAdminLogin: boolean; 
+  setShowAdminLogin: (show: boolean) => void; 
+}) {
   const { isDarkMode } = useDarkMode();
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithSkills | null>(null);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const { user } = useAuth();
   const { toasts, removeToast, showSuccess } = useToast();
 
@@ -121,6 +123,7 @@ function AppRoutes() {
 
 function App() {
   const { user, loading } = useAuth();
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   
   // Add error boundary for better error handling
   if (loading) {
@@ -135,8 +138,14 @@ function App() {
   }
   
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  
+  // Show admin login if requested
+  if (showAdminLogin) {
+    return <AdminLogin onLogin={() => setShowAdminLogin(false)} />;
+  }
+  
   if (!user) return <AuthForm onAdminClick={() => setShowAdminLogin(true)} />;
-  return <AppRoutes />;
+  return <AppRoutes showAdminLogin={showAdminLogin} setShowAdminLogin={setShowAdminLogin} />;
 }
 
 export default function RootApp() {
