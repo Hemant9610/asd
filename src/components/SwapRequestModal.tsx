@@ -54,7 +54,7 @@ export function SwapRequestModal({
       return;
     }
     
-    if (!skillOffered || !skillWanted || !message.trim() || !currentUser?.id) {
+    if (!skillOffered || !skillWanted || !message.trim()) {
       setError('Please fill in all fields');
       return;
     }
@@ -63,6 +63,7 @@ export function SwapRequestModal({
       setError('Please write a more detailed message (at least 10 characters)');
       return;
     }
+
     setLoading(true);
     setError('');
 
@@ -118,7 +119,8 @@ export function SwapRequestModal({
 
   const generateDefaultMessage = () => {
     if (skillOffered && skillWanted) {
-      setMessage(`Hi ${targetUser.name}! I'd love to learn ${skillWanted} from you in exchange for teaching you ${skillOffered}. I think this would be a great skill swap for both of us. I'm available ${currentUser?.user_metadata?.availability || 'flexible times'} and would love to discuss how we can help each other grow. Let me know if you're interested!`);
+      const currentUserName = currentUser?.user_metadata?.name || 'I';
+      setMessage(`Hi ${targetUser.name}! I'd love to learn ${skillWanted} from you in exchange for teaching you ${skillOffered}. I think this would be a great skill swap for both of us. I'm available for flexible times and would love to discuss how we can help each other grow. Let me know if you're interested!`);
     }
   };
 
@@ -130,10 +132,10 @@ export function SwapRequestModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            {targetUser.profilePhoto ? (
+            {targetUser.profilePhoto || targetUser.profile_photo ? (
               <img
                 className="h-10 w-10 rounded-full object-cover"
-                src={targetUser.profilePhoto}
+                src={targetUser.profilePhoto || targetUser.profile_photo || ''}
                 alt={targetUser.name}
               />
             ) : (
@@ -183,6 +185,11 @@ export function SwapRequestModal({
                 </option>
               ))}
             </select>
+            {currentUserSkills.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                You need to add skills to your profile first
+              </p>
+            )}
           </div>
 
           {/* Skill I Want */}
@@ -203,6 +210,11 @@ export function SwapRequestModal({
                 </option>
               ))}
             </select>
+            {targetUser.skillsOffered.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                This user hasn't added any skills to offer yet
+              </p>
+            )}
           </div>
 
           {/* Skill Preview */}
@@ -210,9 +222,15 @@ export function SwapRequestModal({
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="text-sm font-medium text-gray-700 mb-2">Swap Preview</h4>
               <div className="flex items-center justify-center space-x-4">
-                <SkillBadge skill={skillOffered} type="offered" />
+                <div className="text-center">
+                  <p className="text-xs text-gray-600 mb-1">You offer</p>
+                  <SkillBadge skill={skillOffered} type="offered" />
+                </div>
                 <span className="text-gray-400">↔</span>
-                <SkillBadge skill={skillWanted} type="wanted" />
+                <div className="text-center">
+                  <p className="text-xs text-gray-600 mb-1">You want to learn</p>
+                  <SkillBadge skill={skillWanted} type="wanted" />
+                </div>
               </div>
             </div>
           )}
@@ -226,7 +244,8 @@ export function SwapRequestModal({
               <button
                 type="button"
                 onClick={generateDefaultMessage}
-                className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                disabled={!skillOffered || !skillWanted}
+                className="text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 transition-colors"
               >
                 Generate message
               </button>
@@ -244,26 +263,34 @@ export function SwapRequestModal({
             </p>
           </div>
 
-          {/* Target User Skills */}
+          {/* Skills Summary */}
           <div className="bg-blue-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              {targetUser.name}'s Skills
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              Skills Summary
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div>
-                <p className="text-xs text-gray-600 mb-1">Offers:</p>
+                <p className="text-xs text-gray-600 mb-1">Your skills available to offer:</p>
                 <div className="flex flex-wrap gap-1">
-                  {targetUser.skillsOffered.map((skill) => (
-                    <SkillBadge key={skill} skill={skill} type="offered" size="sm" />
-                  ))}
+                  {currentUserSkills.length > 0 ? (
+                    currentUserSkills.map((skill) => (
+                      <SkillBadge key={skill} skill={skill} type="offered" size="sm" />
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400 italic">No skills added yet</span>
+                  )}
                 </div>
               </div>
               <div>
-                <p className="text-xs text-gray-600 mb-1">Wants:</p>
+                <p className="text-xs text-gray-600 mb-1">{targetUser.name}'s skills you can learn:</p>
                 <div className="flex flex-wrap gap-1">
-                  {targetUser.skillsWanted.map((skill) => (
-                    <SkillBadge key={skill} skill={skill} type="wanted" size="sm" />
-                  ))}
+                  {targetUser.skillsOffered.length > 0 ? (
+                    targetUser.skillsOffered.map((skill) => (
+                      <SkillBadge key={skill} skill={skill} type="wanted" size="sm" />
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400 italic">No skills offered yet</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -280,7 +307,7 @@ export function SwapRequestModal({
             </button>
             <button
               type="submit"
-              disabled={!skillOffered || !skillWanted || !message.trim() || loading}
+              disabled={!skillOffered || !skillWanted || !message.trim() || loading || currentUserSkills.length === 0 || targetUser.skillsOffered.length === 0}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
             >
               {loading ? (
