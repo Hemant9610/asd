@@ -23,6 +23,11 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ onLogout }: AdminDashboardProps) {
+  // Debug log to confirm component is rendering
+  React.useEffect(() => {
+    console.log('AdminDashboard component mounted');
+  }, []);
+
   const { showSuccess, showError, showInfo } = useToast();
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'swaps' | 'messages' | 'reports'>('overview');
   const [activeRole, setActiveRole] = useState<'content' | 'users' | 'swaps' | 'messaging' | 'reports'>('content');

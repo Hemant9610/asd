@@ -20,14 +20,41 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
     setError('');
 
     // Simple admin authentication
-    if (credentials.username === 'admin' && credentials.password === 'admin123') {
+    setTimeout(() => {
+      if (credentials.username === 'admin' && credentials.password === 'admin123') {
+        // Store admin session
+        localStorage.setItem('admin_logged_in', 'true');
+        setIsLoading(false);
+        onLogin();
+      } else {
+        setError('Invalid credentials. Use admin/admin123 to login.');
+        setIsLoading(false);
+      }
+    }, 500); // Add small delay to show loading state
+  };
+
+  // Add useEffect to clear any existing admin session on mount
+  React.useEffect(() => {
+    localStorage.removeItem('admin_logged_in');
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    // Simple admin authentication with proper async handling
+    setTimeout(() => {
+      if (credentials.username.trim() === 'admin' && credentials.password.trim() === 'admin123') {
       // Store admin session
+        console.log('Admin login successful'); // Debug log
+        setIsLoading(false);
       localStorage.setItem('admin_logged_in', 'true');
       onLogin();
     } else {
       setError('Invalid credentials. Use admin/admin123 to login.');
       setIsLoading(false);
-    }
+    }, 500);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

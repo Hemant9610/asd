@@ -52,8 +52,10 @@ function AppRoutes({ showAdminLogin, setShowAdminLogin }: {
   };
 
   const handleAdminLogin = () => {
+    console.log('Admin login handler called'); // Debug log
     setIsAdminLoggedIn(true);
     setShowAdminLogin(false);
+    setCurrentView('admin-dashboard'); // Ensure we show admin content
   };
 
   const handleAdminLogout = () => {
