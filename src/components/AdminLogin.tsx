@@ -46,14 +46,15 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
     // Simple admin authentication with proper async handling
     setTimeout(() => {
       if (credentials.username.trim() === 'admin' && credentials.password.trim() === 'admin123') {
-      // Store admin session
+        // Store admin session
         console.log('Admin login successful'); // Debug log
         setIsLoading(false);
-      localStorage.setItem('admin_logged_in', 'true');
-      onLogin();
-    } else {
-      setError('Invalid credentials. Use admin/admin123 to login.');
-      setIsLoading(false);
+        localStorage.setItem('admin_logged_in', 'true');
+        onLogin();
+      } else {
+        setError('Invalid credentials. Use admin/admin123 to login.');
+        setIsLoading(false);
+      }
     }, 500);
   };
 
