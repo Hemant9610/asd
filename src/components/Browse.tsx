@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Filter, Search } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
 import { UserCard } from './UserCard';
-import { skillCategories } from '../data/mockData';
+import { skillCategories, mockUsers } from '../data/mockData';
 import { User } from '../types';
 
 interface BrowseProps {
@@ -10,11 +9,13 @@ interface BrowseProps {
 }
 
 export function Browse({ onSendRequest }: BrowseProps) {
-  const { state } = useApp();
-  const { users, currentUser, searchQuery } = state;
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedSkill, setSelectedSkill] = useState<string>('');
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+
+  // Use mock data for now
+  const users = mockUsers;
+  const currentUser = mockUsers[0]; // Use first user as current user
 
   const filteredUsers = useMemo(() => {
     if (!currentUser) return [];
@@ -24,7 +25,7 @@ export function Browse({ onSendRequest }: BrowseProps) {
       if (user.id === currentUser.id || !user.isPublic || user.isBanned) return false;
 
       // Search query filter
-      const query = localSearchQuery || searchQuery;
+      const query = localSearchQuery;
       if (query) {
         const searchLower = query.toLowerCase();
         const matchesName = user.name.toLowerCase().includes(searchLower);
@@ -53,7 +54,7 @@ export function Browse({ onSendRequest }: BrowseProps) {
 
       return true;
     });
-  }, [users, currentUser, searchQuery, localSearchQuery, selectedCategory, selectedSkill]);
+  }, [users, currentUser, localSearchQuery, selectedCategory, selectedSkill]);
 
   const availableSkills = useMemo(() => {
     const selectedCat = skillCategories.find(cat => cat.id === selectedCategory);

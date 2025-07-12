@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { User, Camera, MapPin, Clock, Eye, EyeOff, Plus, X } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
+import { User, Camera, MapPin, Clock, Eye, EyeOff, Plus } from 'lucide-react';
 import { SkillBadge } from './SkillBadge';
-import { skillCategories } from '../data/mockData';
+import { skillCategories, mockUsers } from '../data/mockData';
 
 export function Profile() {
-  const { state, dispatch } = useApp();
-  const { currentUser } = state;
+  // Use mock data for now
+  const currentUser = mockUsers[0];
+  
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     name: currentUser?.name || '',
@@ -23,13 +23,8 @@ export function Profile() {
   if (!currentUser) return null;
 
   const handleSave = () => {
-    dispatch({
-      type: 'UPDATE_USER',
-      payload: {
-        ...currentUser,
-        ...editForm
-      }
-    });
+    // TODO: Implement with Supabase
+    console.log('Saving profile:', editForm);
     setIsEditing(false);
   };
 
@@ -242,15 +237,23 @@ export function Profile() {
             )}
 
             <div className="flex flex-wrap gap-2">
-              {(isEditing ? editForm.skillsOffered : currentUser.skillsOffered).map((skill) => (
-                <SkillBadge
-                  key={skill}
-                  skill={skill}
-                  type="offered"
-                  removable={isEditing}
-                  onRemove={() => removeSkill(skill, 'offered')}
-                />
-              ))}
+              {(isEditing ? editForm.skillsOffered : currentUser.skillsOffered).map((skill) => 
+                isEditing ? (
+                  <SkillBadge
+                    key={skill}
+                    skill={skill}
+                    type="offered"
+                    removable={true}
+                    onRemove={() => removeSkill(skill, 'offered')}
+                  />
+                ) : (
+                  <SkillBadge
+                    key={skill}
+                    skill={skill}
+                    type="offered"
+                  />
+                )
+              )}
               {(isEditing ? editForm.skillsOffered : currentUser.skillsOffered).length === 0 && (
                 <p className="text-gray-500 text-sm">No skills added yet</p>
               )}
@@ -306,15 +309,23 @@ export function Profile() {
             )}
 
             <div className="flex flex-wrap gap-2">
-              {(isEditing ? editForm.skillsWanted : currentUser.skillsWanted).map((skill) => (
-                <SkillBadge
-                  key={skill}
-                  skill={skill}
-                  type="wanted"
-                  removable={isEditing}
-                  onRemove={() => removeSkill(skill, 'wanted')}
-                />
-              ))}
+              {(isEditing ? editForm.skillsWanted : currentUser.skillsWanted).map((skill) => 
+                isEditing ? (
+                  <SkillBadge
+                    key={skill}
+                    skill={skill}
+                    type="wanted"
+                    removable={true}
+                    onRemove={() => removeSkill(skill, 'wanted')}
+                  />
+                ) : (
+                  <SkillBadge
+                    key={skill}
+                    skill={skill}
+                    type="wanted"
+                  />
+                )
+              )}
               {(isEditing ? editForm.skillsWanted : currentUser.skillsWanted).length === 0 && (
                 <p className="text-gray-500 text-sm">No skills added yet</p>
               )}

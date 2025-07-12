@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle, XCircle, Trash2, Star, User, MessageSquare } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
 import { SwapRequest } from '../types';
 import { SkillBadge } from './SkillBadge';
+import { mockUsers, mockSwapRequests } from '../data/mockData';
 
 export function SwapRequests() {
-  const { state, dispatch } = useApp();
-  const { currentUser, swapRequests, users } = state;
+  // Use mock data for now
+  const currentUser = mockUsers[0];
+  const swapRequests = mockSwapRequests;
+  const users = mockUsers;
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'completed'>('received');
 
   if (!currentUser) return null;
@@ -26,60 +28,23 @@ export function SwapRequests() {
   );
 
   const handleAcceptRequest = (requestId: string) => {
-    const request = swapRequests.find(r => r.id === requestId);
-    if (request) {
-      dispatch({
-        type: 'UPDATE_SWAP_REQUEST',
-        payload: {
-          ...request,
-          status: 'accepted',
-          updatedAt: new Date().toISOString()
-        }
-      });
-
-      dispatch({
-        type: 'ADD_NOTIFICATION',
-        payload: {
-          id: `accept-${requestId}`,
-          type: 'success',
-          title: 'Swap Request Accepted',
-          message: 'You can now coordinate your skill swap!',
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    // TODO: Implement with Supabase
+    console.log('Accepting request:', requestId);
   };
 
   const handleRejectRequest = (requestId: string) => {
-    const request = swapRequests.find(r => r.id === requestId);
-    if (request) {
-      dispatch({
-        type: 'UPDATE_SWAP_REQUEST',
-        payload: {
-          ...request,
-          status: 'rejected',
-          updatedAt: new Date().toISOString()
-        }
-      });
-    }
+    // TODO: Implement with Supabase
+    console.log('Rejecting request:', requestId);
   };
 
   const handleDeleteRequest = (requestId: string) => {
-    dispatch({ type: 'DELETE_SWAP_REQUEST', payload: requestId });
+    // TODO: Implement with Supabase
+    console.log('Deleting request:', requestId);
   };
 
   const handleCompleteSwap = (requestId: string) => {
-    const request = swapRequests.find(r => r.id === requestId);
-    if (request) {
-      dispatch({
-        type: 'UPDATE_SWAP_REQUEST',
-        payload: {
-          ...request,
-          status: 'completed',
-          updatedAt: new Date().toISOString()
-        }
-      });
-    }
+    // TODO: Implement with Supabase
+    console.log('Completing swap:', requestId);
   };
 
   const formatDate = (dateString: string) => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Bell, User, LogOut, Settings, Shield } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
   currentView: string;
@@ -13,6 +14,7 @@ interface HeaderProps {
 
 export function Header({ currentView, onViewChange, currentUser }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const { signOut } = useAuth();
 
   const handleSearch = (query: string) => {
     // TODO: Implement search with Supabase
@@ -20,9 +22,8 @@ export function Header({ currentView, onViewChange, currentUser }: HeaderProps) 
     onViewChange('browse');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_logged_in');
-    window.location.reload();
+  const handleLogout = async () => {
+    await signOut();
   };
 
   const unreadNotifications = 0; // TODO: Load from Supabase

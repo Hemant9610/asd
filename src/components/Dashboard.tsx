@@ -1,17 +1,17 @@
 import React from 'react';
 import { TrendingUp, Users, Calendar, Star, ArrowRight, Bell } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
 import { SkillBadge } from './SkillBadge';
+import { mockUsers, mockSwapRequests, mockRatings } from '../data/mockData';
 
 interface DashboardProps {
   onViewChange: (view: string) => void;
 }
 
 export function Dashboard({ onViewChange }: DashboardProps) {
-  const { state } = useApp();
-  const { currentUser, swapRequests, ratings } = state;
-
-  if (!currentUser) return null;
+  // Use mock data for now
+  const currentUser = mockUsers[0]; // Use first user as current user
+  const swapRequests = mockSwapRequests;
+  const ratings = mockRatings;
 
   const userSwapRequests = swapRequests.filter(
     request => request.fromUserId === currentUser.id || request.toUserId === currentUser.id
@@ -120,7 +120,7 @@ export function Dashboard({ onViewChange }: DashboardProps) {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
           <div className="space-y-4">
             {pendingRequests.slice(0, 3).map((request) => {
-              const otherUser = state.users.find(u => 
+              const otherUser = mockUsers.find(u => 
                 u.id === (request.fromUserId === currentUser.id ? request.toUserId : request.fromUserId)
               );
               

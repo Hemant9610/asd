@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Shield, Users, MessageSquare, Ban, UserCheck, Download, AlertTriangle, Info } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
+import { Shield, Users, MessageSquare, Ban, UserCheck, Download, AlertTriangle } from 'lucide-react';
+import { mockUsers, mockSwapRequests, mockRatings } from '../data/mockData';
 
 export function AdminPanel() {
-  const { state, dispatch } = useApp();
-  const { users, swapRequests, ratings } = state;
+  // Use mock data for now
+  const users = mockUsers;
+  const swapRequests = mockSwapRequests;
+  const ratings = mockRatings;
   const [activeTab, setActiveTab] = useState<'users' | 'swaps' | 'reports'>('users');
 
   const totalUsers = users.filter(u => !u.isAdmin).length;
@@ -13,35 +15,17 @@ export function AdminPanel() {
   const pendingSwaps = swapRequests.filter(r => r.status === 'pending').length;
 
   const handleBanUser = (userId: string) => {
-    dispatch({ type: 'BAN_USER', payload: userId });
-    dispatch({
-      type: 'ADD_NOTIFICATION',
-      payload: {
-        id: `ban-${userId}`,
-        type: 'warning',
-        title: 'User Banned',
-        message: 'User has been banned from the platform',
-        timestamp: new Date().toISOString()
-      }
-    });
+    // TODO: Implement with Supabase
+    console.log('Banning user:', userId);
   };
 
   const handleUnbanUser = (userId: string) => {
-    dispatch({ type: 'UNBAN_USER', payload: userId });
-    dispatch({
-      type: 'ADD_NOTIFICATION',
-      payload: {
-        id: `unban-${userId}`,
-        type: 'info',
-        title: 'User Unbanned',
-        message: 'User access has been restored',
-        timestamp: new Date().toISOString()
-      }
-    });
+    // TODO: Implement with Supabase
+    console.log('Unbanning user:', userId);
   };
 
   const downloadReport = (type: string) => {
-    let data: any[] = [];
+    let data: Record<string, unknown>[] = [];
     let filename = '';
 
     switch (type) {
