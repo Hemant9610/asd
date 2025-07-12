@@ -36,8 +36,29 @@ export async function getAllUsersWithSkills(): Promise<UserWithSkills[]> {
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://mock.supabase.co') {
-      console.warn('Supabase not configured, returning empty array');
-      return [];
+      console.warn('Supabase not configured, returning mock data for development');
+      // Return some mock data for development
+      return [
+        {
+          id: 'mock-1',
+          name: 'Demo User',
+          location: 'Demo City',
+          profile_photo: null,
+          availability: ['Weekends'],
+          is_public: true,
+          is_admin: false,
+          is_banned: false,
+          rating: 4.5,
+          total_swaps: 5,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          skillsOffered: ['JavaScript', 'React'],
+          skillsWanted: ['Python', 'Design'],
+          joinedDate: new Date().toISOString(),
+          isPublic: true,
+          totalSwaps: 5
+        }
+      ];
     }
 
     // Get all public profiles
@@ -50,10 +71,11 @@ export async function getAllUsersWithSkills(): Promise<UserWithSkills[]> {
 
     if (profilesError) {
       console.error('Error fetching profiles:', profilesError);
-      return [];
+      throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
     }
 
     if (!profiles || profiles.length === 0) {
+      console.log('No profiles found in database');
       return [];
     }
 
@@ -70,7 +92,8 @@ export async function getAllUsersWithSkills(): Promise<UserWithSkills[]> {
 
     if (skillsError) {
       console.error('Error fetching user skills:', skillsError);
-      return [];
+      // Continue without skills if skills table fails
+      console.warn('Continuing without skills data');
     }
 
     // Combine profiles with their skills
@@ -100,10 +123,11 @@ export async function getAllUsersWithSkills(): Promise<UserWithSkills[]> {
       };
     });
 
+    console.log(`Loaded ${usersWithSkills.length} users with skills`);
     return usersWithSkills;
   } catch (error) {
     console.error('Error in getAllUsersWithSkills:', error);
-    return [];
+    throw error;
   }
 }
 

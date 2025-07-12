@@ -47,11 +47,21 @@ export function SwapRequestModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!currentUser?.id) {
+      setError('You must be logged in to send swap requests');
+      return;
+    }
+    
     if (!skillOffered || !skillWanted || !message.trim() || !currentUser?.id) {
       setError('Please fill in all fields');
       return;
     }
 
+    if (message.trim().length < 10) {
+      setError('Please write a more detailed message (at least 10 characters)');
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -86,6 +96,10 @@ export function SwapRequestModal({
       setSkillWanted('');
       setMessage('');
       setError('');
+      
+      // Show success message (you could add a toast notification here)
+      alert('Swap request sent successfully!');
+      
       onSend();
       onClose();
     } catch (error) {
@@ -98,7 +112,7 @@ export function SwapRequestModal({
 
   const generateDefaultMessage = () => {
     if (skillOffered && skillWanted) {
-      setMessage(`Hi ${targetUser.name}! I'd love to learn ${skillWanted} from you in exchange for ${skillOffered}. I think this would be a great skill swap for both of us. Let me know if you're interested!`);
+      setMessage(`Hi ${targetUser.name}! I'd love to learn ${skillWanted} from you in exchange for teaching you ${skillOffered}. I think this would be a great skill swap for both of us. I'm available ${currentUser?.user_metadata?.availability || 'flexible times'} and would love to discuss how we can help each other grow. Let me know if you're interested!`);
     }
   };
 
