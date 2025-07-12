@@ -73,6 +73,50 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const loadAdminData = async () => {
     setLoading(true);
     try {
+      // Check if Supabase is configured
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://your-project-id.supabase.co') {
+        console.warn('Supabase not configured, using mock data for admin dashboard');
+        // Set mock data for development
+        setUsers([
+          {
+            id: 'mock-1',
+            name: 'Demo User',
+            location: 'Demo City',
+            profile_photo: null,
+            availability: ['Weekends'],
+            is_public: true,
+            is_admin: false,
+            is_banned: false,
+            rating: 4.5,
+            total_swaps: 5,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            skillsOffered: ['JavaScript', 'React'],
+            skillsWanted: ['Python', 'Design'],
+            joinedDate: new Date().toISOString(),
+            isPublic: true,
+            totalSwaps: 5,
+            email: 'demo@example.com'
+          }
+        ]);
+        setSwapRequests([]);
+        setAdminMessages([
+          {
+            id: '1',
+            title: 'Welcome to SkillSwap Admin!',
+            content: 'Configure Supabase to enable full functionality.',
+            type: 'info',
+            isActive: true,
+            createdAt: new Date().toISOString()
+          }
+        ]);
+        setLoading(false);
+        return;
+      }
+
       // Load users
       const allUsers = await getAllUsersWithSkills();
       setUsers(allUsers);

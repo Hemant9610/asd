@@ -35,7 +35,7 @@ export async function getAllUsersWithSkills(): Promise<UserWithSkills[]> {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://mock.supabase.co') {
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://mock.supabase.co' || supabaseUrl === 'https://your-project-id.supabase.co') {
       console.warn('Supabase not configured, returning mock data for development');
       // Return some mock data for development
       return [
