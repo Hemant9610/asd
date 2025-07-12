@@ -61,7 +61,7 @@ export function Browse({ onSendRequest }: BrowseProps) {
       }
     } catch (error) {
       console.error('Error loading users:', error);
-      setError('Failed to load users. Please try again.');
+      setError('Failed to load users. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }

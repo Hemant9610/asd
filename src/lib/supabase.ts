@@ -9,7 +9,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables:');
   console.error('VITE_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
   console.error('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
-  console.error('Please create a .env file with your Supabase credentials.');
+  console.warn('Supabase not configured - running in development mode');
   
   // Create a mock client for development
   if (import.meta.env.DEV) {
