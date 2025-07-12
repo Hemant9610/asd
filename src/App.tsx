@@ -5,6 +5,7 @@ import { Browse } from './components/Browse';
 import { SwapRequests } from './components/SwapRequests';
 import { Profile } from './components/Profile';
 import { AdminPanel } from './components/AdminPanel';
+import { Notifications } from './components/Notifications';
 import { SwapRequestModal } from './components/SwapRequestModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
@@ -50,16 +51,7 @@ function AppRoutes() {
       case 'admin':
         return <AdminPanel />;
       case 'notifications':
-        return (
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Notifications</h1>
-            <div className="space-y-4">
-              <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                <p className="text-gray-500">No notifications yet</p>
-              </div>
-            </div>
-          </div>
-        );
+        return <Notifications />;
       default:
         return <Dashboard onViewChange={setCurrentView} />;
     }
