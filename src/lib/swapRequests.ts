@@ -217,6 +217,52 @@ export async function getUserSwapRequests(userId: string): Promise<SwapRequestWi
   }
 }
 
+// Get ALL swap requests (admin function)
+export async function getAllSwapRequests(): Promise<SwapRequestWithDetails[]> {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    // Validate Supabase configuration
+    const isValidSupabaseUrl = supabaseUrl && 
+      supabaseUrl !== 'https://your-project-id.supabase.co' && 
+      supabaseUrl !== 'https://mock.supabase.co' &&
+      supabaseUrl.includes('.supabase.co');
+
+    const isValidSupabaseKey = supabaseAnonKey && 
+      supabaseAnonKey !== 'your-anon-key-here' && 
+      supabaseAnonKey !== 'mock-key' &&
+      supabaseAnonKey.length > 20;
+
+    if (!supabaseUrl || !supabaseAnonKey || !isValidSupabaseUrl || !isValidSupabaseKey) {
+      console.warn('Supabase not configured, returning empty swap requests for admin');
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('swap_requests')
+      .select(`
+        *,
+        from_profile:profiles!swap_requests_from_user_id_fkey(name, profile_photo, location),
+        to_profile:profiles!swap_requests_to_user_id_fkey(name, profile_photo, location),
+        skill_offered:skills!swap_requests_skill_offered_id_fkey(name),
+        skill_wanted:skills!swap_requests_skill_wanted_id_fkey(name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all swap requests:', error);
+      throw new Error(`Failed to fetch swap requests: ${error.message}`);
+    }
+
+    console.log(`Loaded ${data?.length || 0} swap requests for admin dashboard`);
+    return data || [];
+  } catch (error) {
+    console.error('Error in getAllSwapRequests:', error);
+    throw error;
+  }
+}
+
 // Create a rating for a completed swap
 export async function createRating(data: {
   swapRequestId: string;

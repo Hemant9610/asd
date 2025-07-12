@@ -5,9 +5,10 @@ import {
   BarChart3, TrendingUp, Activity, Bell, FileText, Settings, LogOut
 } from 'lucide-react';
 import { getAllUsersWithSkills, UserWithSkills } from '../lib/users';
-import { getUserSwapRequests, SwapRequestWithDetails } from '../lib/swapRequests';
+import { getAllSwapRequests, SwapRequestWithDetails } from '../lib/swapRequests';
 import { SkillBadge } from './SkillBadge';
 import { useToast } from '../hooks/useToast';
+import { supabase } from '../lib/supabase';
 
 interface AdminMessage {
   id: string;
@@ -88,13 +89,14 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
         supabaseAnonKey.length > 20;
 
       if (!isValidSupabaseUrl || !isValidSupabaseKey) {
-        console.warn('🔧 Supabase not properly configured, using mock data');
-        // Use mock data for admin dashboard
+        console.warn('🔧 Supabase not properly configured, using mock data for admin dashboard');
+        
+        // Use mock data
         setUsers([
           {
             id: 'mock-1',
             name: 'Demo User 1',
-            location: 'Demo City',
+            location: 'San Francisco, CA',
             profile_photo: null,
             availability: ['Weekends'],
             is_public: true,
@@ -108,12 +110,13 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
             skillsWanted: ['Python', 'Design'],
             joinedDate: new Date().toISOString(),
             isPublic: true,
-            totalSwaps: 5
+            totalSwaps: 5,
+            email: 'demo1@example.com'
           },
           {
             id: 'mock-2',
             name: 'Demo User 2',
-            location: 'Another City',
+            location: 'New York, NY',
             profile_photo: null,
             availability: ['Evenings'],
             is_public: true,
@@ -123,38 +126,91 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
             total_swaps: 3,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            skillsOffered: ['Python', 'Data Analysis'],
-            skillsWanted: ['JavaScript', 'UI Design'],
+            skillsOffered: ['Python', 'Data Science'],
+            skillsWanted: ['JavaScript', 'Web Development'],
+            joinedDate: new Date().toISOString(),
+            isPublic: true,
+            totalSwaps: 3,
+            email: 'demo2@example.com'
+          }
+        ]);
+        
+        setSwapRequests([]);
+        setAdminMessages([
+          {
+            id: '1',
+            title: 'Demo Mode Active',
+            content: 'Configure Supabase to see real data. Check SETUP.md for instructions.',
+            type: 'info',
+            isActive: true,
+            createdAt: new Date().toISOString()
+          }
+        ]);
+        
+        setLoading(false);
+        return;
+      }
+
+      // Load real data from Supabase
+      console.log('Loading real data from Supabase...');
+      
       // Load users
       const allUsers = await getAllUsersWithSkills();
+      console.log(`Loaded ${allUsers.length} users from Supabase`);
       setUsers(allUsers);
 
-      // Load all swap requests (admin can see all)
-      const allSwaps: SwapRequestWithDetails[] = [];
-      for (const user of allUsers) {
-        const userSwaps = await getUserSwapRequests(user.id);
-        allSwaps.push(...userSwaps);
-      }
-      // Remove duplicates
-      const uniqueSwaps = allSwaps.filter((swap, index, self) => 
-        index === self.findIndex(s => s.id === swap.id)
-      );
-      setSwapRequests(uniqueSwaps);
+      // Load all swap requests using admin function
+      const allSwaps = await getAllSwapRequests();
+      console.log(`Loaded ${allSwaps.length} swap requests from Supabase`);
+      setSwapRequests(allSwaps);
 
-      // Mock admin messages
+      // Load admin messages from Supabase
+      const { data: messages, error: messagesError } = await supabase
+        .from('admin_messages')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (messagesError) {
+        console.error('Error loading admin messages:', messagesError);
+        // Use fallback message
+        setAdminMessages([
+          {
+            id: '1',
+            title: 'Welcome to SkillSwap Admin!',
+            content: 'Monitor platform activity and manage users.',
+            type: 'info',
+            isActive: true,
+            createdAt: new Date().toISOString()
+          }
+        ]);
+      } else {
+        const formattedMessages = messages?.map(msg => ({
+          id: msg.id,
+          title: msg.title,
+          content: msg.content,
+          type: msg.type as AdminMessage['type'],
+          isActive: msg.is_active,
+          createdAt: msg.created_at
+        })) || [];
+        setAdminMessages(formattedMessages);
+      }
+
+    } catch (error) {
+      console.error('Error loading admin data:', error);
+      showError('Error', 'Failed to load admin data. Using fallback data.');
+      
+      // Use fallback data on error
       setAdminMessages([
         {
           id: '1',
-          title: 'Welcome to SkillSwap!',
-          content: 'Start connecting with others to share and learn new skills.',
+          title: 'Data Loading Error',
+          content: 'There was an error loading data from the database. Please check your connection.',
           type: 'info',
           isActive: true,
           createdAt: new Date().toISOString()
         }
       ]);
-    } catch (error) {
-      console.error('Error loading admin data:', error);
-      showError('Error', 'Failed to load admin data');
     } finally {
       setLoading(false);
     }
@@ -166,22 +222,48 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
 
     try {
+      // Update user in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_banned: true })
+        .eq('id', userId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
       setUsers(prev => prev.map(user => 
-        user.id === userId ? { ...user, isBanned: true } : user
+        user.id === userId ? { ...user, is_banned: true, isBanned: true } : user
       ));
+      
       showSuccess('User Banned', `${userName} has been banned from the platform`);
     } catch (error) {
+      console.error('Error banning user:', error);
       showError('Error', 'Failed to ban user');
     }
   };
 
   const handleUnbanUser = async (userId: string, userName: string) => {
     try {
+      // Update user in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_banned: false })
+        .eq('id', userId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
       setUsers(prev => prev.map(user => 
-        user.id === userId ? { ...user, isBanned: false } : user
+        user.id === userId ? { ...user, is_banned: false, isBanned: false } : user
       ));
+      
       showSuccess('User Unbanned', `${userName} has been unbanned`);
     } catch (error) {
+      console.error('Error unbanning user:', error);
       showError('Error', 'Failed to unban user');
     }
   };
@@ -193,26 +275,59 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
 
     try {
+      // Insert message into Supabase
+      const { data, error } = await supabase
+        .from('admin_messages')
+        .insert({
+          title: newMessage.title.trim(),
+          content: newMessage.content.trim(),
+          type: newMessage.type,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
       const message: AdminMessage = {
-        id: Date.now().toString(),
-        title: newMessage.title.trim(),
-        content: newMessage.content.trim(),
-        type: newMessage.type,
-        isActive: true,
-        createdAt: new Date().toISOString()
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        type: data.type as AdminMessage['type'],
+        isActive: data.is_active,
+        createdAt: data.created_at
       };
 
       setAdminMessages(prev => [message, ...prev]);
       setNewMessage({ title: '', content: '', type: 'info' });
       showSuccess('Message Sent', 'Platform-wide message has been sent to all users');
     } catch (error) {
+      console.error('Error sending message:', error);
       showError('Error', 'Failed to send message');
     }
   };
 
-  const handleDeleteMessage = (messageId: string) => {
-    setAdminMessages(prev => prev.filter(msg => msg.id !== messageId));
-    showInfo('Message Deleted', 'Admin message has been removed');
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('admin_messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setAdminMessages(prev => prev.filter(msg => msg.id !== messageId));
+      showInfo('Message Deleted', 'Admin message has been removed');
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      showError('Error', 'Failed to delete message');
+    }
   };
 
   const downloadReport = (type: 'users' | 'swaps' | 'activity') => {
@@ -307,13 +422,13 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
                          user.skillsOffered.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
                          user.skillsWanted.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'banned' && user.isBanned) ||
-                         (statusFilter === 'active' && !user.isBanned);
+                         (statusFilter === 'banned' && (user.isBanned || user.is_banned)) ||
+                         (statusFilter === 'active' && !(user.isBanned || user.is_banned));
     
     return matchesSearch && matchesStatus;
   });
@@ -331,8 +446,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const stats = {
     totalUsers: users.length,
-    activeUsers: users.filter(u => !u.isBanned).length,
-    bannedUsers: users.filter(u => u.isBanned).length,
+    activeUsers: users.filter(u => !(u.isBanned || u.is_banned)).length,
+    bannedUsers: users.filter(u => u.isBanned || u.is_banned).length,
     totalSwaps: swapRequests.length,
     pendingSwaps: swapRequests.filter(s => s.status === 'pending').length,
     activeSwaps: swapRequests.filter(s => s.status === 'accepted').length,
@@ -789,18 +904,18 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                user.isBanned
+                                user.isBanned || user.is_banned
                                   ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                                   : user.isPublic
                                   ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300'
                                   : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                               }`}>
-                                {user.isBanned ? 'Banned' : user.isPublic ? 'Active' : 'Private'}
+                                {(user.isBanned || user.is_banned) ? 'Banned' : user.isPublic ? 'Active' : 'Private'}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
-                                {user.isBanned ? (
+                                {(user.isBanned || user.is_banned) ? (
                                   <button
                                     onClick={() => handleUnbanUser(user.id, user.name)}
                                     className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center space-x-1"
