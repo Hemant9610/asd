@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Camera, MapPin, Clock, Eye, EyeOff, Plus } from 'lucide-react';
 import { SkillBadge } from './SkillBadge';
 import { skillCategories, mockUsers } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
+import { 
+  getUserSkills, 
+  addUserSkillOffered, 
+  addUserSkillWanted, 
+  removeUserSkillOffered, 
+  removeUserSkillWanted,
+  updateUserProfile 
+} from '../lib/skills';
 
 export function Profile() {
   const { user } = useAuth();
@@ -35,17 +43,101 @@ export function Profile() {
   const [newSkill, setNewSkill] = useState('');
   const [skillType, setSkillType] = useState<'offered' | 'wanted'>('offered');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [userSkills, setUserSkills] = useState({ offered: [], wanted: [] });
 
   if (!currentUser) return null;
 
+  // Load user skills from database
+  useEffect(() => {
+    if (currentUser?.id) {
+      loadUserSkills();
+    }
+  }, [currentUser?.id]);
+
+  const loadUserSkills = async () => {
+    if (!currentUser?.id) return;
+    
+    const skills = await getUserSkills(currentUser.id);
+    setUserSkills(skills);
+    setEditForm(prev => ({
+      ...prev,
+      skillsOffered: skills.offered,
+      skillsWanted: skills.wanted
+    }));
+  };
+
   // Check if this is a new user (no skills or location set)
-  const isNewUser = currentUser.skillsOffered.length === 0 && 
-                   currentUser.skillsWanted.length === 0 && 
+  const isNewUser = userSkills.offered.length === 0 && 
+                   userSkills.wanted.length === 0 && 
                    !currentUser.location;
-  const handleSave = () => {
-    // TODO: Implement with Supabase
-    console.log('Saving profile:', editForm);
-    setIsEditing(false);
+  
+  const handleSave = async () => {
+    if (!currentUser?.id) return;
+    
+    setLoading(true);
+    try {
+      // Update basic profile info
+      const { error: profileError } = await updateUserProfile(currentUser.id, {
+        name: editForm.name,
+        location: editForm.location,
+        availability: editForm.availability,
+        is_public: editForm.isPublic
+      });
+
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        return;
+      }
+
+      // Handle skills offered changes
+      const currentOffered = userSkills.offered;
+      const newOffered = editForm.skillsOffered;
+      
+      // Add new offered skills
+      for (const skill of newOffered) {
+        if (!currentOffered.includes(skill)) {
+          const { error } = await addUserSkillOffered(currentUser.id, skill);
+          if (error) console.error('Error adding offered skill:', error);
+        }
+      }
+      
+      // Remove deleted offered skills
+      for (const skill of currentOffered) {
+        if (!newOffered.includes(skill)) {
+          const { error } = await removeUserSkillOffered(currentUser.id, skill);
+          if (error) console.error('Error removing offered skill:', error);
+        }
+      }
+
+      // Handle skills wanted changes
+      const currentWanted = userSkills.wanted;
+      const newWanted = editForm.skillsWanted;
+      
+      // Add new wanted skills
+      for (const skill of newWanted) {
+        if (!currentWanted.includes(skill)) {
+          const { error } = await addUserSkillWanted(currentUser.id, skill);
+          if (error) console.error('Error adding wanted skill:', error);
+        }
+      }
+      
+      // Remove deleted wanted skills
+      for (const skill of currentWanted) {
+        if (!newWanted.includes(skill)) {
+          const { error } = await removeUserSkillWanted(currentUser.id, skill);
+          if (error) console.error('Error removing wanted skill:', error);
+        }
+      }
+
+      // Reload skills from database
+      await loadUserSkills();
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addSkill = () => {
@@ -99,9 +191,13 @@ export function Profile() {
         </div>
         <button
           onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+          disabled={loading}
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center space-x-2"
         >
-          {isEditing ? 'Save Changes' : 'Edit Profile'}
+          {loading && (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          )}
+          <span>{isEditing ? 'Save Changes' : 'Edit Profile'}</span>
         </button>
       </div>
 
@@ -275,7 +371,7 @@ export function Profile() {
             )}
 
             <div className="flex flex-wrap gap-2">
-              {(isEditing ? editForm.skillsOffered : currentUser.skillsOffered).map((skill) => 
+              {(isEditing ? editForm.skillsOffered : userSkills.offered).map((skill) => 
                 isEditing ? (
                   <SkillBadge
                     key={skill}
@@ -292,7 +388,7 @@ export function Profile() {
                   />
                 )
               )}
-              {(isEditing ? editForm.skillsOffered : currentUser.skillsOffered).length === 0 && (
+              {(isEditing ? editForm.skillsOffered : userSkills.offered).length === 0 && (
                 <p className="text-gray-500 text-sm">
                   {isNewUser && !isEditing ? 'Add your skills to get started' : 'No skills added yet'}
                 </p>
@@ -349,7 +445,7 @@ export function Profile() {
             )}
 
             <div className="flex flex-wrap gap-2">
-              {(isEditing ? editForm.skillsWanted : currentUser.skillsWanted).map((skill) => 
+              {(isEditing ? editForm.skillsWanted : userSkills.wanted).map((skill) => 
                 isEditing ? (
                   <SkillBadge
                     key={skill}
@@ -366,7 +462,7 @@ export function Profile() {
                   />
                 )
               )}
-              {(isEditing ? editForm.skillsWanted : currentUser.skillsWanted).length === 0 && (
+              {(isEditing ? editForm.skillsWanted : userSkills.wanted).length === 0 && (
                 <p className="text-gray-500 text-sm">
                   {isNewUser && !isEditing ? 'Add skills you want to learn' : 'No skills added yet'}
                 </p>
