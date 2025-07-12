@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getUserSkills } from '../lib/skills';
 import { createSwapRequest, getSkillIdByName } from '../lib/swapRequests';
 import { SkillBadge } from './SkillBadge';
+import { sendNotification } from '../lib/realtime';
 
 interface SwapRequestModalProps {
   isOpen: boolean;
@@ -97,8 +98,13 @@ export function SwapRequestModal({
       setMessage('');
       setError('');
       
-      // Show success message (you could add a toast notification here)
-      alert('Swap request sent successfully!');
+      // Send notification to target user
+      await sendNotification(
+        targetUser.id,
+        'swap_request',
+        'New Swap Request',
+        `${currentUser.user_metadata?.name || 'Someone'} wants to exchange ${skillOffered} for ${skillWanted}`
+      );
       
       onSend();
       onClose();
