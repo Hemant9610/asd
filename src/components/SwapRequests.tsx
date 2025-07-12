@@ -11,6 +11,8 @@ import {
   SwapRequestWithDetails 
 } from '../lib/swapRequests';
 import { RatingModal } from './RatingModal';
+import { subscribeToSwapUpdates } from '../lib/realtime';
+import { useToast } from '../hooks/useToast';
 
 export function SwapRequests() {
   const { user: currentUser } = useAuth();
@@ -21,10 +23,47 @@ export function SwapRequests() {
   const [error, setError] = useState('');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedSwapForRating, setSelectedSwapForRating] = useState<SwapRequestWithDetails | null>(null);
+  const { showSuccess, showInfo, showError } = useToast();
 
   useEffect(() => {
     if (currentUser?.id) {
       loadSwapRequests();
+      
+      // Set up real-time subscription
+      const channel = subscribeToSwapUpdates(currentUser.id, (update) => {
+        console.log('Real-time swap update received:', update);
+        
+        // Show notification based on update type
+        switch (update.type) {
+          case 'new_request':
+            if (update.data.to_user_id === currentUser.id) {
+              showInfo('New Swap Request', 'You have received a new skill exchange request!');
+            }
+            break;
+          case 'request_accepted':
+            if (update.data.from_user_id === currentUser.id) {
+              showSuccess('Request Accepted', 'Your swap request has been accepted!');
+            }
+            break;
+          case 'request_rejected':
+            if (update.data.from_user_id === currentUser.id) {
+              showError('Request Declined', 'Your swap request was declined.');
+            }
+            break;
+          case 'request_completed':
+            showSuccess('Swap Completed', 'A skill exchange has been marked as completed!');
+            break;
+        }
+        
+        // Refresh the list
+        loadSwapRequests();
+      });
+      
+      return () => {
+        if (channel) {
+          channel.unsubscribe();
+        }
+      };
     }
   }, [currentUser?.id]);
 
@@ -51,6 +90,7 @@ export function SwapRequests() {
       if (error) {
         setError(error);
       } else {
+        showSuccess('Request Accepted', 'You have accepted the swap request!');
         await loadSwapRequests();
         setError('');
       }
@@ -68,6 +108,7 @@ export function SwapRequests() {
       if (error) {
         setError(error);
       } else {
+        showInfo('Request Declined', 'You have declined the swap request.');
         await loadSwapRequests();
         setError('');
       }
@@ -87,6 +128,7 @@ export function SwapRequests() {
       if (error) {
         setError(error);
       } else {
+        showInfo('Request Cancelled', 'Your swap request has been cancelled.');
         await loadSwapRequests();
         setError('');
       }
@@ -104,6 +146,7 @@ export function SwapRequests() {
       if (error) {
         setError(error);
       } else {
+        showSuccess('Swap Completed', 'Congratulations! Your skill exchange is now complete.');
         await loadSwapRequests();
         setError('');
       }

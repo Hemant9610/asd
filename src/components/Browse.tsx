@@ -4,6 +4,7 @@ import { UserCard } from './UserCard';
 import { skillCategories } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllUsersWithSkills, searchUsers, UserWithSkills } from '../lib/users';
+import { subscribeToUserUpdates } from '../lib/realtime';
 
 interface BrowseProps {
   onSendRequest: (user: UserWithSkills) => void;
@@ -22,6 +23,21 @@ export function Browse({ onSendRequest }: BrowseProps) {
   // Load users on component mount
   useEffect(() => {
     loadUsers();
+    
+    // Set up real-time subscription for user updates
+    if (currentUser?.id) {
+      const channel = subscribeToUserUpdates(currentUser.id, (updatedUser) => {
+        console.log('User profile updated:', updatedUser);
+        // Refresh users list to show updated profiles
+        loadUsers();
+      });
+      
+      return () => {
+        if (channel) {
+          channel.unsubscribe();
+        }
+      };
+    }
   }, []);
 
   // Handle search with debouncing
@@ -142,21 +158,21 @@ export function Browse({ onSendRequest }: BrowseProps) {
             <Users className="h-8 w-8 text-blue-600" />
             <div>
               <p className="text-2xl font-bold text-blue-900">{stats.totalUsers}</p>
-              <p className="text-sm text-blue-600">Active Users</p>
+              <p className="text-sm text-blue-600">Users Ready to Swap</p>
             </div>
           </div>
           <div className="bg-emerald-50 rounded-lg p-4 flex items-center space-x-3">
             <Filter className="h-8 w-8 text-emerald-600" />
             <div>
               <p className="text-2xl font-bold text-emerald-900">{stats.totalSkills}</p>
-              <p className="text-sm text-emerald-600">Available Skills</p>
+              <p className="text-sm text-emerald-600">Skills Available</p>
             </div>
           </div>
           <div className="bg-purple-50 rounded-lg p-4 flex items-center space-x-3">
             <Star className="h-8 w-8 text-purple-600" />
             <div>
               <p className="text-2xl font-bold text-purple-900">{stats.avgRating.toFixed(1)}</p>
-              <p className="text-sm text-purple-600">Avg Rating</p>
+              <p className="text-sm text-purple-600">Community Rating</p>
             </div>
           </div>
         </div>

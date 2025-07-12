@@ -9,12 +9,15 @@ import { SwapRequestModal } from './components/SwapRequestModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
 import { UserWithSkills } from './lib/users';
+import { useToast } from './hooks/useToast';
+import { ToastContainer } from './components/NotificationToast';
 
 function AppRoutes() {
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithSkills | null>(null);
   const { user } = useAuth();
+  const { toasts, removeToast, showSuccess } = useToast();
 
   const profile = user ? {
     name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
@@ -29,9 +32,9 @@ function AppRoutes() {
 
   const handleSubmitSwapRequest = () => {
     // Request was sent successfully
+    showSuccess('Request Sent', 'Your swap request has been sent successfully!');
     setIsSwapModalOpen(false);
     setSelectedUser(null);
-    // TODO: Show success notification
   };
 
   const renderCurrentView = () => {
@@ -84,6 +87,9 @@ function AppRoutes() {
           targetUser={selectedUser}
         />
       )}
+      
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import React from 'react';
 import { TrendingUp, Users, Calendar, Star, ArrowRight, Bell } from 'lucide-react';
 import { SkillBadge } from './SkillBadge';
-import { mockSwapRequests, mockRatings } from '../data/mockData';
+import { mockSwapRequests, mockRatings, mockUsers } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
+import { subscribeToSwapUpdates } from '../lib/realtime';
+import { useToast } from '../hooks/useToast';
 
 interface DashboardProps {
   onViewChange: (view: string) => void;
@@ -10,6 +12,7 @@ interface DashboardProps {
 
 export function Dashboard({ onViewChange }: DashboardProps) {
   const { user } = useAuth();
+  const { showInfo } = useToast();
   
   // Create current user object from authenticated user
   const currentUser = user ? {
@@ -53,6 +56,23 @@ export function Dashboard({ onViewChange }: DashboardProps) {
     ? userRatings.reduce((sum, rating) => sum + rating.rating, 0) / userRatings.length 
     : 0;
 
+  // Set up real-time notifications for dashboard
+  React.useEffect(() => {
+    if (currentUser?.id) {
+      const channel = subscribeToSwapUpdates(currentUser.id, (update) => {
+        // Show dashboard-specific notifications
+        if (update.type === 'new_request' && update.data.to_user_id === currentUser.id) {
+          showInfo('New Activity', 'Check your swap requests for new activity!');
+        }
+      });
+      
+      return () => {
+        if (channel) {
+          channel.unsubscribe();
+        }
+      };
+    }
+  }, [currentUser?.id, showInfo]);
   const stats = [
     {
       title: 'Total Swaps',
