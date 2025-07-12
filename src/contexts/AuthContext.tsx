@@ -16,6 +16,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Function to ensure user profile exists in profiles table
 const ensureUserProfileExists = async (user: SupabaseUser) => {
   try {
+    // Skip if Supabase is not properly configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://mock.supabase.co') {
+      console.warn('Supabase not configured, skipping profile creation');
+      return;
+    }
+
     // Check if profile already exists
     const { data: existingProfile, error: checkError } = await supabase
       .from('profiles')
@@ -57,6 +66,7 @@ const ensureUserProfileExists = async (user: SupabaseUser) => {
     }
   } catch (error) {
     console.error('Error in ensureUserProfileExists:', error);
+    // Don't throw the error, just log it to prevent blocking the auth flow
   }
 };
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -73,7 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Ensure profile exists for authenticated user
         if (data.session?.user) {
-          await ensureUserProfileExists(data.session.user);
+          // Don't await this to prevent blocking the loading state
+          ensureUserProfileExists(data.session.user).catch(error => {
+            console.error('Failed to ensure profile exists:', error);
+          });
         }
       } catch (error) {
         console.error('Error getting session:', error);
@@ -95,7 +108,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Ensure profile exists for authenticated user
         if (session?.user) {
-          await ensureUserProfileExists(session.user);
+          // Don't await this to prevent blocking the auth state change
+          ensureUserProfileExists(session.user).catch(error => {
+            console.error('Failed to ensure profile exists:', error);
+          });
         }
       });
       return () => {
