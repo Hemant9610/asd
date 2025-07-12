@@ -1,17 +1,44 @@
 import React from 'react';
 import { TrendingUp, Users, Calendar, Star, ArrowRight, Bell } from 'lucide-react';
 import { SkillBadge } from './SkillBadge';
-import { mockUsers, mockSwapRequests, mockRatings } from '../data/mockData';
+import { mockSwapRequests, mockRatings } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
 
 interface DashboardProps {
   onViewChange: (view: string) => void;
 }
 
 export function Dashboard({ onViewChange }: DashboardProps) {
-  // Use mock data for now
-  const currentUser = mockUsers[0]; // Use first user as current user
+  const { user } = useAuth();
+  
+  // Create current user object from authenticated user
+  const currentUser = user ? {
+    id: user.id,
+    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+    email: user.email || '',
+    location: user.user_metadata?.location || '',
+    profilePhoto: user.user_metadata?.profile_photo || undefined,
+    skillsOffered: [], // TODO: Load from Supabase
+    skillsWanted: [], // TODO: Load from Supabase
+    availability: [], // TODO: Load from Supabase
+    isPublic: true,
+    rating: 0, // TODO: Calculate from ratings
+    totalSwaps: 0, // TODO: Count from completed swaps
+    joinedDate: user.created_at || new Date().toISOString()
+  } : null;
+  
   const swapRequests = mockSwapRequests;
   const ratings = mockRatings;
+
+  if (!currentUser) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900">Please log in to view your dashboard</h1>
+        </div>
+      </div>
+    );
+  }
 
   const userSwapRequests = swapRequests.filter(
     request => request.fromUserId === currentUser.id || request.toUserId === currentUser.id
