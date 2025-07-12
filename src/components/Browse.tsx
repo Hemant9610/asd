@@ -198,7 +198,6 @@ export function Browse({ onSendRequest }: BrowseProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Search People & Skills
             </label>
