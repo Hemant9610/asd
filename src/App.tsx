@@ -135,7 +135,7 @@ function App() {
   }
   
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!user) return <AuthForm />;
+  if (!user) return <AuthForm onAdminClick={() => setShowAdminLogin(true)} />;
   return <AppRoutes />;
 }
 

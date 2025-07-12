@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Shield } from 'lucide-react';
 
-export function AuthForm() {
+interface AuthFormProps {
+  onAdminClick?: () => void;
+}
+
+export function AuthForm({ onAdminClick }: AuthFormProps = {}) {
   const { signIn, signUp, loading } = useAuth();
   const [isSignup, setIsSignup] = useState(false);
   const [form, setForm] = useState({
@@ -157,6 +162,20 @@ export function AuthForm() {
             {isSignup ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
           </button>
         </div>
+        
+        {/* Admin Login Button */}
+        {onAdminClick && (
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={onAdminClick}
+              className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-all duration-200 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600"
+            >
+              <Shield className="h-4 w-4" />
+              <span>Admin Login</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
