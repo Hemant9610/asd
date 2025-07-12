@@ -6,6 +6,7 @@ import { DarkModeToggle } from './DarkModeToggle';
 interface HeaderProps {
   currentView: string;
   onViewChange: (view: string) => void;
+  onAdminClick?: () => void;
   currentUser: {
     name: string;
     profile_photo?: string;
@@ -13,7 +14,7 @@ interface HeaderProps {
   };
 }
 
-export function Header({ currentView, onViewChange, currentUser }: HeaderProps) {
+export function Header({ currentView, onViewChange, onAdminClick, currentUser }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { signOut } = useAuth();
 
@@ -94,19 +95,13 @@ export function Header({ currentView, onViewChange, currentUser }: HeaderProps) 
                 >
                   My Swaps
                 </button>
-                {currentUser.isAdmin && (
-                  <button
-                    onClick={() => onViewChange('admin')}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      currentView === 'admin'
-                        ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                  >
-                    <Shield className="h-4 w-4 inline mr-1" />
-                    Admin
-                  </button>
-                )}
+                <button
+                  onClick={onAdminClick}
+                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <Shield className="h-4 w-4 inline mr-1" />
+                  Admin
+                </button>
               </nav>
 
               {/* Dark Mode Toggle */}

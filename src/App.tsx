@@ -5,9 +5,10 @@ import { Dashboard } from './components/Dashboard';
 import { Browse } from './components/Browse';
 import { SwapRequests } from './components/SwapRequests';
 import { Profile } from './components/Profile';
-import { AdminPanel } from './components/AdminPanel';
 import { Notifications } from './components/Notifications';
 import { SwapRequestModal } from './components/SwapRequestModal';
+import { AdminLogin } from './components/AdminLogin';
+import { AdminDashboard } from './components/AdminDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
 import { UserWithSkills } from './lib/users';
@@ -19,13 +20,21 @@ function AppRoutes() {
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithSkills | null>(null);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const { user } = useAuth();
   const { toasts, removeToast, showSuccess } = useToast();
+
+  // Check admin login status on mount
+  React.useEffect(() => {
+    const adminLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+    setIsAdminLoggedIn(adminLoggedIn);
+  }, []);
 
   const profile = user ? {
     name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
     profile_photo: user.user_metadata?.profile_photo || '',
-    isAdmin: false // TODO: Load from profiles table
+    isAdmin: isAdminLoggedIn
   } : null;
 
   const handleSendRequest = (targetUser: UserWithSkills) => {
@@ -40,6 +49,26 @@ function AppRoutes() {
     setSelectedUser(null);
   };
 
+  const handleAdminLogin = () => {
+    setIsAdminLoggedIn(true);
+    setShowAdminLogin(false);
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem('admin_logged_in');
+    setIsAdminLoggedIn(false);
+  };
+
+  // Show admin panel if admin is logged in
+  if (isAdminLoggedIn) {
+    return <AdminDashboard onLogout={handleAdminLogout} />;
+  }
+
+  // Show admin login if requested
+  if (showAdminLogin) {
+    return <AdminLogin onLogin={handleAdminLogin} />;
+  }
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
@@ -51,7 +80,8 @@ function AppRoutes() {
       case 'profile':
         return <Profile />;
       case 'admin':
-        return <AdminPanel />;
+        setShowAdminLogin(true);
+        return null;
       case 'notifications':
         return <Notifications />;
       default:
@@ -64,6 +94,7 @@ function AppRoutes() {
       <Header 
         currentView={currentView} 
         onViewChange={setCurrentView}
+        onAdminClick={() => setShowAdminLogin(true)}
         currentUser={profile || { name: '', profile_photo: '', isAdmin: false }}
       />
       <main>

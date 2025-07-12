@@ -20,12 +20,12 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
     setError('');
 
     // Simple admin authentication
-    if (credentials.username === 'admin' && credentials.password === 'admin') {
+    if (credentials.username === 'admin' && credentials.password === 'admin123') {
       // Store admin session
       localStorage.setItem('admin_logged_in', 'true');
       onLogin();
     } else {
-      setError('Invalid credentials. Use admin/admin to login.');
+      setError('Invalid credentials. Use admin/admin123 to login.');
       setIsLoading(false);
     }
   };
@@ -138,7 +138,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
             <p className="text-sm text-blue-800 font-medium mb-2">Demo Credentials:</p>
             <p className="text-xs text-blue-600">
               <strong>Username:</strong> admin<br />
-              <strong>Password:</strong> admin
+              <strong>Password:</strong> admin123
             </p>
           </div>
 
@@ -152,4 +152,4 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
       </div>
     </div>
   );
-} 
+}
