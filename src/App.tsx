@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDarkMode } from './hooks/useDarkMode';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { Browse } from './components/Browse';
@@ -14,6 +15,7 @@ import { useToast } from './hooks/useToast';
 import { ToastContainer } from './components/NotificationToast';
 
 function AppRoutes() {
+  const { isDarkMode } = useDarkMode();
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithSkills | null>(null);
@@ -58,7 +60,7 @@ function AppRoutes() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Header 
         currentView={currentView} 
         onViewChange={setCurrentView}

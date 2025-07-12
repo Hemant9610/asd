@@ -105,13 +105,13 @@ export function Dashboard({ onViewChange }: DashboardProps) {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-gray-900 dark:text-gray-100">
       {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           Welcome back, {currentUser.name}!
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Manage your skills, track your swaps, and discover new learning opportunities.
         </p>
       </div>
@@ -119,14 +119,14 @@ export function Dashboard({ onViewChange }: DashboardProps) {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat) => (
-          <div key={stat.title} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div key={stat.title} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
             <div className="flex items-center">
               <div className={`${stat.bgColor} ${stat.color} p-3 rounded-lg`}>
                 <stat.icon className="h-6 w-6" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
               </div>
             </div>
           </div>
@@ -135,36 +135,36 @@ export function Dashboard({ onViewChange }: DashboardProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h2>
           <div className="space-y-3">
             <button
               onClick={() => onViewChange('browse')}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg hover:from-blue-100 hover:to-purple-100 transition-colors group"
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 transition-colors group"
             >
-              <span className="font-medium text-gray-900">Find People to Swap With</span>
-              <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              <span className="font-medium text-gray-900 dark:text-gray-100">Find People to Swap With</span>
+              <ArrowRight className="h-5 w-5 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors" />
             </button>
             <button
               onClick={() => onViewChange('profile')}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg hover:from-emerald-100 hover:to-blue-100 transition-colors group"
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-lg hover:from-emerald-100 hover:to-blue-100 dark:hover:from-emerald-900/30 dark:hover:to-blue-900/30 transition-colors group"
             >
-              <span className="font-medium text-gray-900">Update My Skills</span>
-              <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              <span className="font-medium text-gray-900 dark:text-gray-100">Update My Skills</span>
+              <ArrowRight className="h-5 w-5 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors" />
             </button>
             <button
               onClick={() => onViewChange('requests')}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg hover:from-orange-100 hover:to-red-100 transition-colors group"
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg hover:from-orange-100 hover:to-red-100 dark:hover:from-orange-900/30 dark:hover:to-red-900/30 transition-colors group"
             >
-              <span className="font-medium text-gray-900">View My Swap Requests</span>
-              <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              <span className="font-medium text-gray-900 dark:text-gray-100">View My Swap Requests</span>
+              <ArrowRight className="h-5 w-5 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors" />
             </button>
           </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h2>
           <div className="space-y-4">
             {pendingRequests.slice(0, 3).map((request) => {
               const otherUser = mockUsers.find(u => 
@@ -172,16 +172,16 @@ export function Dashboard({ onViewChange }: DashboardProps) {
               );
               
               return (
-                <div key={request.id} className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
+                <div key={request.id} className="flex items-center space-x-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                   <Bell className="h-5 w-5 text-orange-600" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {request.fromUserId === currentUser.id 
                         ? `Waiting for ${otherUser?.name} to respond`
                         : `${otherUser?.name} wants to swap`
                       }
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {request.skillOffered} ↔ {request.skillWanted}
                     </p>
                   </div>
@@ -190,35 +190,35 @@ export function Dashboard({ onViewChange }: DashboardProps) {
             })}
             
             {pendingRequests.length === 0 && (
-              <p className="text-gray-500 text-center py-8">No recent activity</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">No recent activity</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Skills Overview */}
-      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">My Skills</h2>
+      <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">My Skills</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Skills I Offer</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Skills I Offer</h3>
             <div className="flex flex-wrap gap-2">
               {currentUser.skillsOffered.map((skill) => (
                 <SkillBadge key={skill} skill={skill} type="offered" />
               ))}
               {currentUser.skillsOffered.length === 0 && (
-                <p className="text-gray-500 text-sm">No skills added yet</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No skills added yet</p>
               )}
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Skills I Want</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Skills I Want</h3>
             <div className="flex flex-wrap gap-2">
               {currentUser.skillsWanted.map((skill) => (
                 <SkillBadge key={skill} skill={skill} type="wanted" />
               ))}
               {currentUser.skillsWanted.length === 0 && (
-                <p className="text-gray-500 text-sm">No skills added yet</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No skills added yet</p>
               )}
             </div>
           </div>
