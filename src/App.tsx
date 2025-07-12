@@ -30,9 +30,18 @@ function AppRoutes({ showAdminLogin, setShowAdminLogin }: {
   // Check admin login status on mount
   React.useEffect(() => {
     const adminLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+    console.log('Checking admin login status:', adminLoggedIn);
     setIsAdminLoggedIn(adminLoggedIn);
   }, []);
 
+  // Also check when showAdminLogin changes
+  React.useEffect(() => {
+    if (!showAdminLogin) {
+      const adminLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+      console.log('Admin login check after modal close:', adminLoggedIn);
+      setIsAdminLoggedIn(adminLoggedIn);
+    }
+  }, [showAdminLogin]);
   const profile = user ? {
     name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
     profile_photo: user.user_metadata?.profile_photo || '',
@@ -53,23 +62,29 @@ function AppRoutes({ showAdminLogin, setShowAdminLogin }: {
 
   const handleAdminLogin = () => {
     console.log('Admin login handler called'); // Debug log
+    console.log('Setting admin logged in to true');
     setIsAdminLoggedIn(true);
+    localStorage.setItem('admin_logged_in', 'true');
     setShowAdminLogin(false);
-    setCurrentView('admin-dashboard'); // Ensure we show admin content
+    console.log('Admin login complete, should show dashboard');
   };
 
   const handleAdminLogout = () => {
+    console.log('Admin logout called');
     localStorage.removeItem('admin_logged_in');
     setIsAdminLoggedIn(false);
   };
 
+  console.log('Current state - isAdminLoggedIn:', isAdminLoggedIn, 'showAdminLogin:', showAdminLogin);
   // Show admin panel if admin is logged in
   if (isAdminLoggedIn) {
+    console.log('Rendering AdminDashboard');
     return <AdminDashboard onLogout={handleAdminLogout} />;
   }
 
   // Show admin login if requested
   if (showAdminLogin) {
+    console.log('Rendering AdminLogin');
     return <AdminLogin onLogin={handleAdminLogin} />;
   }
 

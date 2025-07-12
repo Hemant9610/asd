@@ -24,6 +24,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
       if (credentials.username === 'admin' && credentials.password === 'admin123') {
         // Store admin session
         localStorage.setItem('admin_logged_in', 'true');
+        console.log('Admin credentials correct, calling onLogin');
         setIsLoading(false);
         onLogin();
       } else {
