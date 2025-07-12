@@ -28,6 +28,12 @@ export function AuthForm() {
       return;
     }
     
+    // Password validation
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+    
     if (isSignup) {
       if (!form.name) {
         setError('Name is required for signup');
