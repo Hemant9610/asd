@@ -25,6 +25,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
         // Store admin session
         localStorage.setItem('admin_logged_in', 'true');
         console.log('Admin credentials correct, calling onLogin');
+        console.log('localStorage set to:', localStorage.getItem('admin_logged_in'));
         setIsLoading(false);
         onLogin();
       } else {

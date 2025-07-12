@@ -63,9 +63,13 @@ function AppRoutes({ showAdminLogin, setShowAdminLogin }: {
   const handleAdminLogin = () => {
     console.log('Admin login handler called'); // Debug log
     console.log('Setting admin logged in to true');
-    setIsAdminLoggedIn(true);
-    localStorage.setItem('admin_logged_in', 'true');
     setShowAdminLogin(false);
+    // Small delay to ensure localStorage is set by AdminLogin component
+    setTimeout(() => {
+      const adminStatus = localStorage.getItem('admin_logged_in') === 'true';
+      console.log('Checking admin status after login:', adminStatus);
+      setIsAdminLoggedIn(adminStatus);
+    }, 100);
     console.log('Admin login complete, should show dashboard');
   };
 
