@@ -1,51 +1,145 @@
-import React, { useState } from 'react';
-import { Clock, CheckCircle, XCircle, Trash2, Star, User, MessageSquare } from 'lucide-react';
-import { SwapRequest } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Clock, CheckCircle, XCircle, Trash2, Star, User, MessageSquare, AlertCircle, Calendar } from 'lucide-react';
 import { SkillBadge } from './SkillBadge';
-import { mockUsers, mockSwapRequests } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  getUserSwapRequests, 
+  acceptSwapRequest, 
+  rejectSwapRequest, 
+  deleteSwapRequest, 
+  completeSwapRequest,
+  SwapRequestWithDetails 
+} from '../lib/swapRequests';
+import { RatingModal } from './RatingModal';
 
 export function SwapRequests() {
-  // Use mock data for now
-  const currentUser = mockUsers[0];
-  const swapRequests = mockSwapRequests;
-  const users = mockUsers;
+  const { user: currentUser } = useAuth();
+  const [swapRequests, setSwapRequests] = useState<SwapRequestWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'completed'>('received');
+  const [error, setError] = useState('');
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedSwapForRating, setSelectedSwapForRating] = useState<SwapRequestWithDetails | null>(null);
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      loadSwapRequests();
+    }
+  }, [currentUser?.id]);
+
+  const loadSwapRequests = async () => {
+    if (!currentUser?.id) return;
+    
+    setLoading(true);
+    setError('');
+    try {
+      const requests = await getUserSwapRequests(currentUser.id);
+      setSwapRequests(requests);
+    } catch (error) {
+      console.error('Error loading swap requests:', error);
+      setError('Failed to load swap requests');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAcceptRequest = async (requestId: string) => {
+    setActionLoading(requestId);
+    try {
+      const { error } = await acceptSwapRequest(requestId);
+      if (error) {
+        setError(error);
+      } else {
+        await loadSwapRequests();
+        setError('');
+      }
+    } catch (error) {
+      setError('Failed to accept request');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    setActionLoading(requestId);
+    try {
+      const { error } = await rejectSwapRequest(requestId);
+      if (error) {
+        setError(error);
+      } else {
+        await loadSwapRequests();
+        setError('');
+      }
+    } catch (error) {
+      setError('Failed to reject request');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!confirm('Are you sure you want to delete this swap request?')) return;
+    
+    setActionLoading(requestId);
+    try {
+      const { error } = await deleteSwapRequest(requestId);
+      if (error) {
+        setError(error);
+      } else {
+        await loadSwapRequests();
+        setError('');
+      }
+    } catch (error) {
+      setError('Failed to delete request');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCompleteSwap = async (requestId: string) => {
+    setActionLoading(requestId);
+    try {
+      const { error } = await completeSwapRequest(requestId);
+      if (error) {
+        setError(error);
+      } else {
+        await loadSwapRequests();
+        setError('');
+      }
+    } catch (error) {
+      setError('Failed to complete swap');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRateSwap = (swap: SwapRequestWithDetails) => {
+    setSelectedSwapForRating(swap);
+    setShowRatingModal(true);
+  };
+
+  const handleRatingSubmitted = () => {
+    setShowRatingModal(false);
+    setSelectedSwapForRating(null);
+    loadSwapRequests();
+  };
 
   if (!currentUser) return null;
 
   const receivedRequests = swapRequests.filter(
-    request => request.toUserId === currentUser.id && request.status === 'pending'
+    request => request.to_user_id === currentUser.id && request.status === 'pending'
   );
 
   const sentRequests = swapRequests.filter(
-    request => request.fromUserId === currentUser.id && request.status === 'pending'
+    request => request.from_user_id === currentUser.id && request.status === 'pending'
   );
 
   const completedSwaps = swapRequests.filter(
     request => 
-      (request.fromUserId === currentUser.id || request.toUserId === currentUser.id) &&
+      (request.from_user_id === currentUser.id || request.to_user_id === currentUser.id) &&
       (request.status === 'accepted' || request.status === 'completed')
   );
-
-  const handleAcceptRequest = (requestId: string) => {
-    // TODO: Implement with Supabase
-    console.log('Accepting request:', requestId);
-  };
-
-  const handleRejectRequest = (requestId: string) => {
-    // TODO: Implement with Supabase
-    console.log('Rejecting request:', requestId);
-  };
-
-  const handleDeleteRequest = (requestId: string) => {
-    // TODO: Implement with Supabase
-    console.log('Deleting request:', requestId);
-  };
-
-  const handleCompleteSwap = (requestId: string) => {
-    // TODO: Implement with Supabase
-    console.log('Completing swap:', requestId);
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -56,24 +150,23 @@ export function SwapRequests() {
     });
   };
 
-  const getOtherUser = (request: SwapRequest) => {
-    const otherUserId = request.fromUserId === currentUser.id ? request.toUserId : request.fromUserId;
-    return users.find(u => u.id === otherUserId);
+  const getOtherUser = (request: SwapRequestWithDetails) => {
+    return request.from_user_id === currentUser.id ? request.to_profile : request.from_profile;
   };
 
-  const renderRequestCard = (request: SwapRequest, isReceived: boolean) => {
+  const renderRequestCard = (request: SwapRequestWithDetails, isReceived: boolean) => {
     const otherUser = getOtherUser(request);
-    if (!otherUser) return null;
+    const isLoading = actionLoading === request.id;
 
     return (
-      <div key={request.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div key={request.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            {otherUser.profilePhoto ? (
+            {otherUser.profile_photo ? (
               <img
                 className="h-12 w-12 rounded-full object-cover"
-                src={otherUser.profilePhoto}
+                src={otherUser.profile_photo}
                 alt={otherUser.name}
               />
             ) : (
@@ -83,10 +176,18 @@ export function SwapRequests() {
             )}
             <div>
               <h3 className="font-semibold text-gray-900">{otherUser.name}</h3>
-              <p className="text-sm text-gray-500">{otherUser.location}</p>
+              <p className="text-sm text-gray-500">{otherUser.location || 'Location not specified'}</p>
             </div>
           </div>
-          <span className="text-xs text-gray-500">{formatDate(request.createdAt)}</span>
+          <div className="text-right">
+            <span className="text-xs text-gray-500">{formatDate(request.created_at)}</span>
+            <div className="flex items-center mt-1">
+              <Calendar className="h-3 w-3 text-gray-400 mr-1" />
+              <span className="text-xs text-gray-500">
+                {request.status === 'pending' ? 'Pending' : 'Updated'} {formatDate(request.updated_at)}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Skill Swap */}
@@ -96,14 +197,14 @@ export function SwapRequests() {
               <p className="text-xs text-gray-600 mb-1">
                 {isReceived ? 'They offer' : 'You offer'}
               </p>
-              <SkillBadge skill={request.skillOffered} type="offered" />
+              <SkillBadge skill={request.skill_offered.name} type="offered" />
             </div>
-            <span className="text-gray-400">↔</span>
+            <span className="text-gray-400 text-xl">↔</span>
             <div className="text-center">
               <p className="text-xs text-gray-600 mb-1">
                 {isReceived ? 'You offer' : 'They offer'}
               </p>
-              <SkillBadge skill={request.skillWanted} type="wanted" />
+              <SkillBadge skill={request.skill_wanted.name} type="wanted" />
             </div>
           </div>
         </div>
@@ -125,16 +226,26 @@ export function SwapRequests() {
             <>
               <button
                 onClick={() => handleAcceptRequest(request.id)}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                disabled={isLoading}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
               >
-                <CheckCircle className="h-4 w-4" />
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4" />
+                )}
                 <span>Accept</span>
               </button>
               <button
                 onClick={() => handleRejectRequest(request.id)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                disabled={isLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
               >
-                <XCircle className="h-4 w-4" />
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <XCircle className="h-4 w-4" />
+                )}
                 <span>Decline</span>
               </button>
             </>
@@ -143,9 +254,14 @@ export function SwapRequests() {
           {!isReceived && request.status === 'pending' && (
             <button
               onClick={() => handleDeleteRequest(request.id)}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              disabled={isLoading}
+              className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
             >
-              <Trash2 className="h-4 w-4" />
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
               <span>Cancel Request</span>
             </button>
           )}
@@ -154,20 +270,19 @@ export function SwapRequests() {
     );
   };
 
-  const renderCompletedSwap = (request: SwapRequest) => {
+  const renderCompletedSwap = (request: SwapRequestWithDetails) => {
     const otherUser = getOtherUser(request);
-    if (!otherUser) return null;
-
-    const isRequester = request.fromUserId === currentUser.id;
+    const isRequester = request.from_user_id === currentUser.id;
+    const isLoading = actionLoading === request.id;
 
     return (
       <div key={request.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            {otherUser.profilePhoto ? (
+            {otherUser.profile_photo ? (
               <img
                 className="h-12 w-12 rounded-full object-cover"
-                src={otherUser.profilePhoto}
+                src={otherUser.profile_photo}
                 alt={otherUser.name}
               />
             ) : (
@@ -188,7 +303,7 @@ export function SwapRequests() {
               </div>
             </div>
           </div>
-          <span className="text-xs text-gray-500">{formatDate(request.updatedAt)}</span>
+          <span className="text-xs text-gray-500">{formatDate(request.updated_at)}</span>
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -197,32 +312,48 @@ export function SwapRequests() {
               <p className="text-xs text-gray-600 mb-1">
                 {isRequester ? 'You offered' : 'They offered'}
               </p>
-              <SkillBadge skill={request.skillOffered} type="offered" />
+              <SkillBadge skill={request.skill_offered.name} type="offered" />
             </div>
             <span className="text-gray-400">↔</span>
             <div className="text-center">
               <p className="text-xs text-gray-600 mb-1">
                 {isRequester ? 'You learned' : 'They learned'}
               </p>
-              <SkillBadge skill={request.skillWanted} type="wanted" />
+              <SkillBadge skill={request.skill_wanted.name} type="wanted" />
             </div>
           </div>
         </div>
 
         {request.status === 'accepted' && (
-          <button
-            onClick={() => handleCompleteSwap(request.id)}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-          >
-            <CheckCircle className="h-4 w-4" />
-            <span>Mark as Completed</span>
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleCompleteSwap(request.id)}
+              disabled={isLoading}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <CheckCircle className="h-4 w-4" />
+              )}
+              <span>Mark as Completed</span>
+            </button>
+          </div>
         )}
 
         {request.status === 'completed' && (
-          <div className="bg-emerald-50 rounded-lg p-3 flex items-center justify-center space-x-2">
-            <Star className="h-4 w-4 text-emerald-600" />
-            <span className="text-sm text-emerald-800 font-medium">Swap Completed Successfully!</span>
+          <div className="space-y-3">
+            <div className="bg-emerald-50 rounded-lg p-3 flex items-center justify-center space-x-2">
+              <Star className="h-4 w-4 text-emerald-600" />
+              <span className="text-sm text-emerald-800 font-medium">Swap Completed Successfully!</span>
+            </div>
+            <button
+              onClick={() => handleRateSwap(request)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <Star className="h-4 w-4" />
+              <span>Rate & Review</span>
+            </button>
           </div>
         )}
       </div>
@@ -238,6 +369,20 @@ export function SwapRequests() {
           Manage your incoming and outgoing skill swap requests.
         </p>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
+          <AlertCircle className="h-5 w-5 text-red-600" />
+          <span className="text-red-600">{error}</span>
+          <button
+            onClick={() => setError('')}
+            className="ml-auto text-red-600 hover:text-red-800"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mb-8">
@@ -287,49 +432,71 @@ export function SwapRequests() {
       </div>
 
       {/* Content */}
-      <div className="space-y-6">
-        {activeTab === 'received' && (
-          <>
-            {receivedRequests.length > 0 ? (
-              receivedRequests.map(request => renderRequestCard(request, true))
-            ) : (
-              <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No pending requests</h3>
-                <p className="text-gray-500">You don't have any incoming swap requests yet.</p>
-              </div>
-            )}
-          </>
-        )}
+      {loading ? (
+        <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading swap requests...</h3>
+          <p className="text-gray-500">Please wait while we fetch your data</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {activeTab === 'received' && (
+            <>
+              {receivedRequests.length > 0 ? (
+                receivedRequests.map(request => renderRequestCard(request, true))
+              ) : (
+                <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+                  <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No pending requests</h3>
+                  <p className="text-gray-500">You don't have any incoming swap requests yet.</p>
+                </div>
+              )}
+            </>
+          )}
 
-        {activeTab === 'sent' && (
-          <>
-            {sentRequests.length > 0 ? (
-              sentRequests.map(request => renderRequestCard(request, false))
-            ) : (
-              <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No sent requests</h3>
-                <p className="text-gray-500">You haven't sent any swap requests yet.</p>
-              </div>
-            )}
-          </>
-        )}
+          {activeTab === 'sent' && (
+            <>
+              {sentRequests.length > 0 ? (
+                sentRequests.map(request => renderRequestCard(request, false))
+              ) : (
+                <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No sent requests</h3>
+                  <p className="text-gray-500">You haven't sent any swap requests yet.</p>
+                </div>
+              )}
+            </>
+          )}
 
-        {activeTab === 'completed' && (
-          <>
-            {completedSwaps.length > 0 ? (
-              completedSwaps.map(renderCompletedSwap)
-            ) : (
-              <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-                <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No completed swaps</h3>
-                <p className="text-gray-500">You don't have any active or completed swaps yet.</p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+          {activeTab === 'completed' && (
+            <>
+              {completedSwaps.length > 0 ? (
+                completedSwaps.map(renderCompletedSwap)
+              ) : (
+                <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+                  <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No completed swaps</h3>
+                  <p className="text-gray-500">You don't have any active or completed swaps yet.</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Rating Modal */}
+      {showRatingModal && selectedSwapForRating && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => {
+            setShowRatingModal(false);
+            setSelectedSwapForRating(null);
+          }}
+          onSubmit={handleRatingSubmitted}
+          swapRequest={selectedSwapForRating}
+          currentUserId={currentUser.id}
+        />
+      )}
     </div>
   );
 }

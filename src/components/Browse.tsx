@@ -60,7 +60,7 @@ export function Browse({ onSendRequest }: BrowseProps) {
     setSearchLoading(true);
     setError('');
     try {
-      const searchResults = await searchUsers(localSearchQuery);
+      const searchResults = await searchUsers(localSearchQuery.trim());
       setUsers(searchResults);
       
       if (searchResults.length === 0) {
@@ -198,9 +198,12 @@ export function Browse({ onSendRequest }: BrowseProps) {
                 value={localSearchQuery}
                 onChange={(e) => setLocalSearchQuery(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="Search by name, location, or skills..."
+                placeholder="Search by name, location, or skills (e.g., 'Photoshop', 'Excel')..."
               />
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Try searching for specific skills like "JavaScript", "Photography", or "Spanish"
+            </p>
           </div>
 
           {/* Category Filter */}
