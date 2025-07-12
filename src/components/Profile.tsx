@@ -2,10 +2,26 @@ import React, { useState } from 'react';
 import { User, Camera, MapPin, Clock, Eye, EyeOff, Plus } from 'lucide-react';
 import { SkillBadge } from './SkillBadge';
 import { skillCategories, mockUsers } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Profile() {
-  // Use mock data for now
-  const currentUser = mockUsers[0];
+  const { user } = useAuth();
+  
+  // For new users, create a minimal profile with just their name
+  const currentUser = user ? {
+    id: user.id,
+    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+    email: user.email || '',
+    location: user.user_metadata?.location || '',
+    profilePhoto: user.user_metadata?.profile_photo || undefined,
+    skillsOffered: [],
+    skillsWanted: [],
+    availability: [],
+    isPublic: true,
+    rating: 0,
+    totalSwaps: 0,
+    joinedDate: user.created_at || new Date().toISOString()
+  } : null;
   
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -22,6 +38,10 @@ export function Profile() {
 
   if (!currentUser) return null;
 
+  // Check if this is a new user (no skills or location set)
+  const isNewUser = currentUser.skillsOffered.length === 0 && 
+                   currentUser.skillsWanted.length === 0 && 
+                   !currentUser.location;
   const handleSave = () => {
     // TODO: Implement with Supabase
     console.log('Saving profile:', editForm);
@@ -188,8 +208,26 @@ export function Profile() {
 
         {/* Content Area */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Welcome message for new users */}
+          {isNewUser && !isEditing && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                Welcome to SkillSwap! 👋
+              </h3>
+              <p className="text-blue-800 mb-4">
+                Complete your profile to start connecting with other learners and sharing your skills.
+              </p>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Complete Your Profile
+              </button>
+            </div>
+          )}
+
           {/* Skills Offered */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills I Offer</h3>
             
             {isEditing && (
@@ -255,13 +293,15 @@ export function Profile() {
                 )
               )}
               {(isEditing ? editForm.skillsOffered : currentUser.skillsOffered).length === 0 && (
-                <p className="text-gray-500 text-sm">No skills added yet</p>
+                <p className="text-gray-500 text-sm">
+                  {isNewUser && !isEditing ? 'Add your skills to get started' : 'No skills added yet'}
+                </p>
               )}
             </div>
           </div>
 
           {/* Skills Wanted */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills I Want to Learn</h3>
             
             {isEditing && (
@@ -327,13 +367,15 @@ export function Profile() {
                 )
               )}
               {(isEditing ? editForm.skillsWanted : currentUser.skillsWanted).length === 0 && (
-                <p className="text-gray-500 text-sm">No skills added yet</p>
+                <p className="text-gray-500 text-sm">
+                  {isNewUser && !isEditing ? 'Add skills you want to learn' : 'No skills added yet'}
+                </p>
               )}
             </div>
           </div>
 
           {/* Availability */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${isNewUser && !isEditing ? 'opacity-50' : ''}`}>
             <div className="flex items-center space-x-2 mb-4">
               <Clock className="h-5 w-5 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900">Availability</h3>
@@ -360,7 +402,9 @@ export function Profile() {
             </div>
             
             {(isEditing ? editForm.availability : currentUser.availability).length === 0 && (
-              <p className="text-gray-500 text-sm mt-2">No availability set</p>
+              <p className="text-gray-500 text-sm mt-2">
+                {isNewUser && !isEditing ? 'Set your availability to connect with others' : 'No availability set'}
+              </p>
             )}
           </div>
         </div>
