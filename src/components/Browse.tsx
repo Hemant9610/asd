@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Filter, Search, Loader2 } from 'lucide-react';
 import { UserCard } from './UserCard';
 import { skillCategories } from '../data/mockData';
