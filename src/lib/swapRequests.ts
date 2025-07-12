@@ -6,6 +6,7 @@ export interface SwapRequestData {
   skillOfferedId: string;
   skillWantedId: string;
   message: string;
+  exchangeGroup?: string; // Optional: to group multiple skill exchanges
 }
 
 export interface SwapRequestWithDetails {
