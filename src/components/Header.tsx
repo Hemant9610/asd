@@ -142,7 +142,6 @@ export function Header({ currentView, onViewChange, currentUser }: HeaderProps) 
                       <User className="h-4 w-4 text-white" />
                     </div>
                   )}
-                  <span className="hidden md:block text-sm font-medium text-gray-700">
                   <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
                     {currentUser.name}
                   </span>
