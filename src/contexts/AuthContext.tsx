@@ -201,6 +201,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
+      // Always clear local state even if server logout fails
+      setUser(null);
+      setSession(null);
       setLoading(false);
     }
   };
