@@ -97,7 +97,7 @@ export function Profile() {
       // Add new offered skills
       for (const skill of newOffered) {
         if (!currentOffered.includes(skill)) {
-          const { error } = await addUserSkillOffered(currentUser.id, skill);
+          const { error } = await addUserSkillOffered(currentUser.id, skill, editForm.name);
           if (error) console.error('Error adding offered skill:', error);
         }
       }
@@ -117,7 +117,7 @@ export function Profile() {
       // Add new wanted skills
       for (const skill of newWanted) {
         if (!currentWanted.includes(skill)) {
-          const { error } = await addUserSkillWanted(currentUser.id, skill);
+          const { error } = await addUserSkillWanted(currentUser.id, skill, editForm.name);
           if (error) console.error('Error adding wanted skill:', error);
         }
       }

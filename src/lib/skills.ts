@@ -5,31 +5,44 @@ export interface UserSkills {
   wanted: string[];
 }
 
-// Get user's skills from database
+export interface UserSkillRecord {
+  id: string;
+  user_id: string;
+  skill_id: string;
+  skill_offered: boolean;
+  skill_wanted: boolean;
+  user_name: string;
+  created_at: string;
+  skill_name?: string; // From joined skills table
+}
+
+// Get user's skills from the new single table
 export async function getUserSkills(userId: string): Promise<UserSkills> {
   try {
-    // Get offered skills
-    const { data: offeredData, error: offeredError } = await supabase
-      .rpc('get_user_skills_offered', { user_uuid: userId });
+    const { data, error } = await supabase
+      .from('user_skills')
+      .select(`
+        *,
+        skills(name)
+      `)
+      .eq('user_id', userId);
 
-    if (offeredError) {
-      console.error('Error fetching offered skills:', offeredError);
+    if (error) {
+      console.error('Error fetching user skills:', error);
       return { offered: [], wanted: [] };
     }
 
-    // Get wanted skills
-    const { data: wantedData, error: wantedError } = await supabase
-      .rpc('get_user_skills_wanted', { user_uuid: userId });
+    const offered = data
+      ?.filter(record => record.skill_offered)
+      .map(record => record.skills?.name)
+      .filter(Boolean) || [];
 
-    if (wantedError) {
-      console.error('Error fetching wanted skills:', wantedError);
-      return { offered: [], wanted: [] };
-    }
+    const wanted = data
+      ?.filter(record => record.skill_wanted)
+      .map(record => record.skills?.name)
+      .filter(Boolean) || [];
 
-    return {
-      offered: offeredData?.map((row: any) => row.skill_name) || [],
-      wanted: wantedData?.map((row: any) => row.skill_name) || []
-    };
+    return { offered, wanted };
   } catch (error) {
     console.error('Error in getUserSkills:', error);
     return { offered: [], wanted: [] };
@@ -37,12 +50,49 @@ export async function getUserSkills(userId: string): Promise<UserSkills> {
 }
 
 // Add a skill to user's offered skills
-export async function addUserSkillOffered(userId: string, skillName: string): Promise<{ error: string | null }> {
+export async function addUserSkillOffered(userId: string, skillName: string, userName: string): Promise<{ error: string | null }> {
   try {
+    // First, get or create the skill
+    const { data: skillData, error: skillError } = await supabase
+      .from('skills')
+      .select('id')
+      .eq('name', skillName)
+      .single();
+
+    if (skillError && skillError.code !== 'PGRST116') {
+      console.error('Error finding skill:', skillError);
+      return { error: skillError.message };
+    }
+
+    let skillId = skillData?.id;
+
+    // If skill doesn't exist, create it
+    if (!skillId) {
+      const { data: newSkill, error: createError } = await supabase
+        .from('skills')
+        .insert({ name: skillName, category: 'Other' })
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error('Error creating skill:', createError);
+        return { error: createError.message };
+      }
+
+      skillId = newSkill.id;
+    }
+
+    // Insert or update user skill record
     const { error } = await supabase
-      .rpc('add_user_skill_offered', { 
-        user_uuid: userId, 
-        skill_name: skillName 
+      .from('user_skills')
+      .upsert({
+        user_id: userId,
+        skill_id: skillId,
+        skill_offered: true,
+        skill_wanted: false,
+        user_name: userName
+      }, {
+        onConflict: 'user_id,skill_id,skill_offered,skill_wanted'
       });
 
     if (error) {
@@ -58,12 +108,49 @@ export async function addUserSkillOffered(userId: string, skillName: string): Pr
 }
 
 // Add a skill to user's wanted skills
-export async function addUserSkillWanted(userId: string, skillName: string): Promise<{ error: string | null }> {
+export async function addUserSkillWanted(userId: string, skillName: string, userName: string): Promise<{ error: string | null }> {
   try {
+    // First, get or create the skill
+    const { data: skillData, error: skillError } = await supabase
+      .from('skills')
+      .select('id')
+      .eq('name', skillName)
+      .single();
+
+    if (skillError && skillError.code !== 'PGRST116') {
+      console.error('Error finding skill:', skillError);
+      return { error: skillError.message };
+    }
+
+    let skillId = skillData?.id;
+
+    // If skill doesn't exist, create it
+    if (!skillId) {
+      const { data: newSkill, error: createError } = await supabase
+        .from('skills')
+        .insert({ name: skillName, category: 'Other' })
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error('Error creating skill:', createError);
+        return { error: createError.message };
+      }
+
+      skillId = newSkill.id;
+    }
+
+    // Insert or update user skill record
     const { error } = await supabase
-      .rpc('add_user_skill_wanted', { 
-        user_uuid: userId, 
-        skill_name: skillName 
+      .from('user_skills')
+      .upsert({
+        user_id: userId,
+        skill_id: skillId,
+        skill_offered: false,
+        skill_wanted: true,
+        user_name: userName
+      }, {
+        onConflict: 'user_id,skill_id,skill_offered,skill_wanted'
       });
 
     if (error) {
@@ -81,11 +168,25 @@ export async function addUserSkillWanted(userId: string, skillName: string): Pro
 // Remove a skill from user's offered skills
 export async function removeUserSkillOffered(userId: string, skillName: string): Promise<{ error: string | null }> {
   try {
+    // Get skill ID
+    const { data: skillData, error: skillError } = await supabase
+      .from('skills')
+      .select('id')
+      .eq('name', skillName)
+      .single();
+
+    if (skillError) {
+      console.error('Error finding skill:', skillError);
+      return { error: skillError.message };
+    }
+
+    // Delete the user skill record
     const { error } = await supabase
-      .rpc('remove_user_skill_offered', { 
-        user_uuid: userId, 
-        skill_name: skillName 
-      });
+      .from('user_skills')
+      .delete()
+      .eq('user_id', userId)
+      .eq('skill_id', skillData.id)
+      .eq('skill_offered', true);
 
     if (error) {
       console.error('Error removing offered skill:', error);
@@ -102,11 +203,25 @@ export async function removeUserSkillOffered(userId: string, skillName: string):
 // Remove a skill from user's wanted skills
 export async function removeUserSkillWanted(userId: string, skillName: string): Promise<{ error: string | null }> {
   try {
+    // Get skill ID
+    const { data: skillData, error: skillError } = await supabase
+      .from('skills')
+      .select('id')
+      .eq('name', skillName)
+      .single();
+
+    if (skillError) {
+      console.error('Error finding skill:', skillError);
+      return { error: skillError.message };
+    }
+
+    // Delete the user skill record
     const { error } = await supabase
-      .rpc('remove_user_skill_wanted', { 
-        user_uuid: userId, 
-        skill_name: skillName 
-      });
+      .from('user_skills')
+      .delete()
+      .eq('user_id', userId)
+      .eq('skill_id', skillData.id)
+      .eq('skill_wanted', true);
 
     if (error) {
       console.error('Error removing wanted skill:', error);
@@ -142,5 +257,31 @@ export async function updateUserProfile(userId: string, updates: {
   } catch (error) {
     console.error('Error in updateUserProfile:', error);
     return { error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+// Get all user skills for browsing/searching
+export async function getAllUserSkills(): Promise<UserSkillRecord[]> {
+  try {
+    const { data, error } = await supabase
+      .from('user_skills')
+      .select(`
+        *,
+        skills(name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all user skills:', error);
+      return [];
+    }
+
+    return data?.map(record => ({
+      ...record,
+      skill_name: record.skills?.name
+    })) || [];
+  } catch (error) {
+    console.error('Error in getAllUserSkills:', error);
+    return [];
   }
 }
