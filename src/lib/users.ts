@@ -35,8 +35,20 @@ export async function getAllUsersWithSkills(): Promise<UserWithSkills[]> {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://mock.supabase.co' || supabaseUrl === 'https://your-project-id.supabase.co') {
-      console.warn('Supabase not configured, returning mock data for development');
+    // Validate Supabase configuration
+    const isValidSupabaseUrl = supabaseUrl && 
+      supabaseUrl !== 'https://your-project-id.supabase.co' && 
+      supabaseUrl !== 'https://mock.supabase.co' &&
+      supabaseUrl.includes('.supabase.co');
+
+    const isValidSupabaseKey = supabaseAnonKey && 
+      supabaseAnonKey !== 'your-anon-key-here' && 
+      supabaseAnonKey !== 'mock-key' &&
+      supabaseAnonKey.length > 20;
+
+    if (!supabaseUrl || !supabaseAnonKey || !isValidSupabaseUrl || !isValidSupabaseKey) {
+      console.warn('🔧 Supabase not properly configured, returning mock data for development');
+      console.warn('📖 Please check your .env file and SETUP.md for configuration instructions');
       // Return some mock data for development
       return [
         {

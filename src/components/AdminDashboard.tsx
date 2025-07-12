@@ -73,6 +73,78 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const loadAdminData = async () => {
     setLoading(true);
     try {
+      // Check if Supabase is properly configured
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const isValidSupabaseUrl = supabaseUrl && 
+        supabaseUrl !== 'https://your-project-id.supabase.co' && 
+        supabaseUrl !== 'https://mock.supabase.co' &&
+        supabaseUrl.includes('.supabase.co');
+
+      const isValidSupabaseKey = supabaseAnonKey && 
+        supabaseAnonKey !== 'your-anon-key-here' && 
+        supabaseAnonKey !== 'mock-key' &&
+        supabaseAnonKey.length > 20;
+
+      if (!isValidSupabaseUrl || !isValidSupabaseKey) {
+        console.warn('🔧 Supabase not properly configured, using mock data');
+        // Use mock data for admin dashboard
+        setUsers([
+          {
+            id: 'mock-1',
+            name: 'Demo User 1',
+            location: 'Demo City',
+            profile_photo: null,
+            availability: ['Weekends'],
+            is_public: true,
+            is_admin: false,
+            is_banned: false,
+            rating: 4.5,
+            total_swaps: 5,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            skillsOffered: ['JavaScript', 'React'],
+            skillsWanted: ['Python', 'Design'],
+            joinedDate: new Date().toISOString(),
+            isPublic: true,
+            totalSwaps: 5
+          },
+          {
+            id: 'mock-2',
+            name: 'Demo User 2',
+            location: 'Another City',
+            profile_photo: null,
+            availability: ['Evenings'],
+            is_public: true,
+            is_admin: false,
+            is_banned: false,
+            rating: 4.2,
+            total_swaps: 3,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            skillsOffered: ['Python', 'Data Analysis'],
+            skillsWanted: ['JavaScript', 'UI Design'],
+            joinedDate: new Date().toISOString(),
+            isPublic: true,
+            totalSwaps: 3
+          }
+        ]);
+        setSwapRequests([]);
+        setAdminMessages([
+          {
+            id: '1',
+            title: 'Demo Mode Active',
+            content: 'Configure Supabase to see real data. Check SETUP.md for instructions.',
+            type: 'info',
+            isActive: true,
+            createdAt: new Date().toISOString()
+          }
+        ]);
+        setLoading(false);
+        return;
+      }
+
       // Check if Supabase is configured
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
