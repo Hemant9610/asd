@@ -1,45 +1,98 @@
 import React, { useState } from 'react';
 import { X, Send, User } from 'lucide-react';
-import { User as UserType } from '../types';
+import { UserWithSkills } from '../lib/users';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserSkills } from '../lib/skills';
+import { createSwapRequest, getSkillIdByName } from '../lib/swapRequests';
 import { SkillBadge } from './SkillBadge';
 
 interface SwapRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSend: (data: {
-    skillOffered: string;
-    skillWanted: string;
-    message: string;
-  }) => void;
-  targetUser: UserType;
-  currentUserSkills: string[];
+  onSend: () => void;
+  targetUser: UserWithSkills;
 }
 
 export function SwapRequestModal({
   isOpen,
   onClose,
   onSend,
-  targetUser,
-  currentUserSkills
+  targetUser
 }: SwapRequestModalProps) {
+  const { user: currentUser } = useAuth();
+  const [currentUserSkills, setCurrentUserSkills] = useState<string[]>([]);
   const [skillOffered, setSkillOffered] = useState('');
   const [skillWanted, setSkillWanted] = useState('');
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Load current user's skills when modal opens
+  React.useEffect(() => {
+    if (isOpen && currentUser?.id) {
+      loadCurrentUserSkills();
+    }
+  }, [isOpen, currentUser?.id]);
+
+  const loadCurrentUserSkills = async () => {
+    if (!currentUser?.id) return;
+    
+    try {
+      const skills = await getUserSkills(currentUser.id);
+      setCurrentUserSkills(skills.offered);
+    } catch (error) {
+      console.error('Error loading user skills:', error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (skillOffered && skillWanted && message.trim()) {
-      onSend({
-        skillOffered,
-        skillWanted,
+    if (!skillOffered || !skillWanted || !message.trim() || !currentUser?.id) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Get skill IDs
+      const skillOfferedId = await getSkillIdByName(skillOffered);
+      const skillWantedId = await getSkillIdByName(skillWanted);
+
+      if (!skillOfferedId || !skillWantedId) {
+        setError('Could not find the selected skills');
+        setLoading(false);
+        return;
+      }
+
+      // Create swap request
+      const { error: createError } = await createSwapRequest({
+        fromUserId: currentUser.id,
+        toUserId: targetUser.id,
+        skillOfferedId,
+        skillWantedId,
         message: message.trim()
       });
-      
-      // Reset form
+
+      if (createError) {
+        setError(createError);
+        setLoading(false);
+        return;
+      }
+
+      // Success - reset form and close modal
       setSkillOffered('');
       setSkillWanted('');
       setMessage('');
+      setError('');
+      onSend();
       onClose();
+    } catch (error) {
+      console.error('Error creating swap request:', error);
+      setError('Failed to send swap request. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,6 +138,13 @@ export function SwapRequestModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
           {/* Skill I Offer */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -200,11 +260,20 @@ export function SwapRequestModal({
             </button>
             <button
               type="submit"
-              disabled={!skillOffered || !skillWanted || !message.trim()}
+              disabled={!skillOffered || !skillWanted || !message.trim() || loading}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
             >
-              <Send className="h-4 w-4" />
-              <span>Send Request</span>
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  <span>Send Request</span>
+                </>
+              )}
             </button>
           </div>
         </form>

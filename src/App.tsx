@@ -8,26 +8,30 @@ import { AdminPanel } from './components/AdminPanel';
 import { SwapRequestModal } from './components/SwapRequestModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
-import { User } from './types';
+import { UserWithSkills } from './lib/users';
 
 function AppRoutes() {
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithSkills | null>(null);
   const { user } = useAuth();
 
-  // TODO: Replace with real user profile fetch
-  const profile = user as User | null;
+  const profile = user ? {
+    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+    profile_photo: user.user_metadata?.profile_photo || '',
+    isAdmin: false // TODO: Load from profiles table
+  } : null;
 
-  const handleSendRequest = (targetUser: User) => {
+  const handleSendRequest = (targetUser: UserWithSkills) => {
     setSelectedUser(targetUser);
     setIsSwapModalOpen(true);
   };
 
   const handleSubmitSwapRequest = () => {
-    // TODO: Implement with Supabase
+    // Request was sent successfully
     setIsSwapModalOpen(false);
     setSelectedUser(null);
+    // TODO: Show success notification
   };
 
   const renderCurrentView = () => {
@@ -69,7 +73,7 @@ function AppRoutes() {
         {renderCurrentView()}
       </main>
       {/* Swap Request Modal */}
-      {isSwapModalOpen && selectedUser && profile && (
+      {isSwapModalOpen && selectedUser && (
         <SwapRequestModal
           isOpen={isSwapModalOpen}
           onClose={() => {
@@ -78,7 +82,6 @@ function AppRoutes() {
           }}
           onSend={handleSubmitSwapRequest}
           targetUser={selectedUser}
-          currentUserSkills={[]} // TODO: Load from Supabase
         />
       )}
     </div>

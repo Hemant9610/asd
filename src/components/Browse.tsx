@@ -1,40 +1,72 @@
 import React, { useState, useMemo } from 'react';
-import { Filter, Search } from 'lucide-react';
+import { Filter, Search, Loader2 } from 'lucide-react';
 import { UserCard } from './UserCard';
-import { skillCategories, mockUsers } from '../data/mockData';
-import { User } from '../types';
+import { skillCategories } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
+import { getAllUsersWithSkills, searchUsers, UserWithSkills } from '../lib/users';
 
 interface BrowseProps {
-  onSendRequest: (user: User) => void;
+  onSendRequest: (user: UserWithSkills) => void;
 }
 
 export function Browse({ onSendRequest }: BrowseProps) {
+  const { user: currentUser } = useAuth();
+  const [users, setUsers] = useState<UserWithSkills[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedSkill, setSelectedSkill] = useState<string>('');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
 
-  // Use mock data for now
-  const users = mockUsers;
-  const currentUser = mockUsers[0]; // Use first user as current user
+  // Load users on component mount
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // Handle search with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleSearch();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [localSearchQuery]);
+
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const allUsers = await getAllUsersWithSkills();
+      setUsers(allUsers);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!localSearchQuery.trim()) {
+      loadUsers();
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const searchResults = await searchUsers(localSearchQuery);
+      setUsers(searchResults);
+    } catch (error) {
+      console.error('Error searching users:', error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
 
   const filteredUsers = useMemo(() => {
-    if (!currentUser) return [];
+    if (!currentUser?.id) return [];
 
     return users.filter(user => {
       // Exclude current user and non-public profiles
       if (user.id === currentUser.id || !user.isPublic || user.isBanned) return false;
-
-      // Search query filter
-      const query = localSearchQuery;
-      if (query) {
-        const searchLower = query.toLowerCase();
-        const matchesName = user.name.toLowerCase().includes(searchLower);
-        const matchesLocation = user.location?.toLowerCase().includes(searchLower);
-        const matchesSkills = [...user.skillsOffered, ...user.skillsWanted]
-          .some(skill => skill.toLowerCase().includes(searchLower));
-        
-        if (!matchesName && !matchesLocation && !matchesSkills) return false;
-      }
 
       // Category filter
       if (selectedCategory) {
@@ -54,7 +86,7 @@ export function Browse({ onSendRequest }: BrowseProps) {
 
       return true;
     });
-  }, [users, currentUser, localSearchQuery, selectedCategory, selectedSkill]);
+  }, [users, currentUser?.id, selectedCategory, selectedSkill]);
 
   const availableSkills = useMemo(() => {
     const selectedCat = skillCategories.find(cat => cat.id === selectedCategory);
@@ -86,7 +118,11 @@ export function Browse({ onSendRequest }: BrowseProps) {
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+                {searchLoading ? (
+                  <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4 text-gray-400" />
+                )}
               </div>
               <input
                 type="text"
@@ -186,14 +222,22 @@ export function Browse({ onSendRequest }: BrowseProps) {
       </div>
 
       {/* Results */}
-      <div className="mb-4 flex justify-between items-center">
-        <p className="text-gray-600">
-          Found {filteredUsers.length} {filteredUsers.length === 1 ? 'person' : 'people'}
-        </p>
-      </div>
+      {!loading && (
+        <div className="mb-4 flex justify-between items-center">
+          <p className="text-gray-600">
+            Found {filteredUsers.length} {filteredUsers.length === 1 ? 'person' : 'people'}
+          </p>
+        </div>
+      )}
 
       {/* User Grid */}
-      {filteredUsers.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+          <Loader2 className="h-8 w-8 text-gray-400 mx-auto mb-4 animate-spin" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading users...</h3>
+          <p className="text-gray-500">Finding people to connect with</p>
+        </div>
+      ) : filteredUsers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredUsers.map((user) => (
             <UserCard
@@ -209,9 +253,14 @@ export function Browse({ onSendRequest }: BrowseProps) {
             <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {localSearchQuery ? 'No users found' : 'No users available'}
+            </h3>
             <p className="text-gray-500">
-              Try adjusting your search criteria or browse all available users.
+              {localSearchQuery 
+                ? 'Try adjusting your search criteria or browse all available users.'
+                : 'Be the first to add your skills and connect with others!'
+              }
             </p>
           </div>
         </div>
